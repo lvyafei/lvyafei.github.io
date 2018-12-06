@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="MySQL,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="1.读写分离方案目前要实现mysql的主从读写分离，主要有以下几种方案：">
+<meta name="keywords" content="MySQL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL读写分离方案选型">
+<meta property="og:url" content="http://lvyafei.github.io/2018/12/02/2018-12-02-MySQL读写分离方案选型/index.html">
+<meta property="og:site_name" content="FeSa">
+<meta property="og:description" content="1.读写分离方案目前要实现mysql的主从读写分离，主要有以下几种方案：">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://image-static.segmentfault.com/290/493/2904939003-5a074a6f6e7ea_articlex">
+<meta property="og:image" content="http://www.2cto.com/uploadfile/Collfiles/20150402/2015040210055875.png">
+<meta property="og:image" content="https://images2017.cnblogs.com/blog/883511/201709/883511-20170925115910151-347833274.png">
+<meta property="og:image" content="https://images2017.cnblogs.com/blog/883511/201709/883511-20170925115734901-1106073519.png">
+<meta property="og:image" content="http://www.cloud-ark.com/static/product_img/Arkproxy.png">
+<meta property="og:image" content="https://yqfile.alicdn.com/f30dd5a58ea24c87365127b3951a067a3c23134d.jpeg">
+<meta property="og:image" content="https://yqfile.alicdn.com/99ecf19b4f839b8a6df909c5584a5a0144f090fa.jpeg">
+<meta property="og:image" content="https://yqfile.alicdn.com/7f465154accff14368ff16d0b011dfc1b82cbac6.jpeg">
+<meta property="og:image" content="https://yqfile.alicdn.com/6c77a9f51c3a9cdb0e783607752ebcbad01cbbf3.jpeg">
+<meta property="og:updated_time" content="2018-12-06T01:42:34.680Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MySQL读写分离方案选型">
+<meta name="twitter:description" content="1.读写分离方案目前要实现mysql的主从读写分离，主要有以下几种方案：">
+<meta name="twitter:image" content="https://image-static.segmentfault.com/290/493/2904939003-5a074a6f6e7ea_articlex">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://lvyafei.github.io/2018/12/02/2018-12-02-MySQL读写分离方案选型/">
+
+
+
+
+
+  <title>MySQL读写分离方案选型 | FeSa</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">FeSa</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">develop & design</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="Searching..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://lvyafei.github.io/2018/12/02/2018-12-02-MySQL读写分离方案选型/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lvyafei">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="FeSa">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">MySQL读写分离方案选型</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-12-02T00:00:00+08:00">
+                2018-12-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">中间件</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="1-读写分离方案"><a href="#1-读写分离方案" class="headerlink" title="1.读写分离方案"></a>1.读写分离方案</h2><p>目前要实现mysql的主从读写分离，主要有以下几种方案：<br><a id="more"></a></p>
+<h3 id="1-1-修改源码"><a href="#1-1-修改源码" class="headerlink" title="1.1 修改源码"></a>1.1 修改源码</h3><p>通过程序实现，网上很多现成的代码，比较复杂，如果添加从服务器要更改多台服务器的代码。</p>
+<h3 id="1-2-自研"><a href="#1-2-自研" class="headerlink" title="1.2 自研"></a>1.2 自研</h3><p>自己开发接口实现，这种方案门槛高，开发成本高，不是一般的小公司能承担得起。</p>
+<h3 id="1-3-中间件"><a href="#1-3-中间件" class="headerlink" title="1.3 中间件"></a>1.3 中间件</h3><p>由于mysql-proxy的主从读写分离是通过lua脚本来实现，目前lua的脚本的开发跟不上节奏，而写没有完美的现成的脚本，因此导致用于生产环境的话风险比较大，据网上很多人说mysql-proxy的性能不高。阿里开源项目Amoeba具有负载均衡、高可用性、sql过滤、读写分离、可路由相关的query到目标数据库，并且安装配置非常简单。</p>
+<h2 id="2-读写分离中间件"><a href="#2-读写分离中间件" class="headerlink" title="2.读写分离中间件"></a>2.读写分离中间件</h2><h3 id="2-1-活跃中的项目"><a href="#2-1-活跃中的项目" class="headerlink" title="2.1 活跃中的项目"></a>2.1 活跃中的项目</h3><h4 id="2-1-1-活跃-MySQL-Router-官方"><a href="#2-1-1-活跃-MySQL-Router-官方" class="headerlink" title="2.1.1 [活跃]-MySQL-Router(官方)"></a>2.1.1 [活跃]-MySQL-Router(官方)</h4><p>官网地址: <a href="https://dev.mysql.com/doc/mysql-router/8.0/en/" target="_blank" rel="noopener">https://dev.mysql.com/doc/mysql-router/8.0/en/</a></p>
+<p>由MySQL官方提供，MySQL Router用于取代MySQL Proxy，建议MySQL Router与应用程序部署在一台机器。应用程序像访问MySQL一样访问MySQL Proxy，由MySQL Proxy将数据转发给后端的MySQL。支持各种操作系统。</p>
+<p><img src="https://image-static.segmentfault.com/290/493/2904939003-5a074a6f6e7ea_articlex" alt="架构图"></p>
+<p>使用MySQL-Router实现应用程序的高可用: <a href="https://segmentfault.com/a/1190000011970688" target="_blank" rel="noopener">https://segmentfault.com/a/1190000011970688</a></p>
+<h4 id="2-1-2-活跃-MySQL-Cluster-官方"><a href="#2-1-2-活跃-MySQL-Cluster-官方" class="headerlink" title="2.1.2 [活跃]-MySQL-Cluster(官方)"></a>2.1.2 [活跃]-MySQL-Cluster(官方)</h4><p>MySQL Cluster 是MySQL 官方集群部署方案，它的历史较久。支持通过自动分片支持读写扩展，通过实时备份冗余数据，是可用性最高的方案，声称可做到99.999%的可用性。MySQL-Cluster 的稳定性也不是太好。</p>
+<p><img src="http://www.2cto.com/uploadfile/Collfiles/20150402/2015040210055875.png" alt="MySQL-Cluster"></p>
+<p>实战体验几种MySQLCluster方案: <a href="https://www.2cto.com/database/201504/387166.html" target="_blank" rel="noopener">https://www.2cto.com/database/201504/387166.html</a></p>
+<h4 id="2-1-3-活跃-MaxScale-MariaDB"><a href="#2-1-3-活跃-MaxScale-MariaDB" class="headerlink" title="2.1.3 [活跃]-MaxScale(MariaDB)"></a>2.1.3 [活跃]-MaxScale(MariaDB)</h4><p>MariaDB数据库管理系统是MySQL的一个分支，主要由开源社区在维护，采用GPL授权许可 MariaDB的目的是完全兼容MySQL，包括API和命令行，使之能轻松成为MySQL的代替品。在存储引擎方面，使用XtraDB（英语：XtraDB）来代替MySQL的InnoDB。 MariaDB由MySQL的创始人Michael Widenius（英语：Michael Widenius）主导开发，他早前曾以10亿美元的价格，将自己创建的公司MySQL AB卖给了SUN，此后，随着SUN被甲骨文收购，MySQL的所有权也落入Oracle的手中。MariaDB名称来自Michael Widenius的女儿Maria的名字。</p>
+<p>MariaDB基于事务的Maria存储引擎，替换了MySQL的MyISAM存储引擎，它使用了Percona的 XtraDB，InnoDB的变体，分支的开发者希望提供访问即将到来的MySQL 5.4 InnoDB性能。这个版本还包括了 PrimeBase XT (PBXT) 和 FederatedX存储引擎。</p>
+<p>MaxScale是mariadb开发的一个MySQL数据中间件，配置好MySQL的主从复制架构后，可以实现读写分离，把读操作分散到从服务器中，并且对多个服务器实现负载均衡。MaxScale是插件式结构，允许用户开发适合自己的插件。MaxScale 使用 C 语言开发，利用 Linux 下的异步 I/O 功能。使用 epoll 作为事件驱动框架。</p>
+<p>MaxScale有两种方式实现读/写分离。一种是基于connect的，类似于Haproxy，不解析SQL语句，可以通过PHP Yii框架或Java Mybatis框架实现。在此方式中，用Maxscale做多台slave的负载均衡，并且支持主从同步延迟检测功能。</p>
+<p><img src="https://images2017.cnblogs.com/blog/883511/201709/883511-20170925115910151-347833274.png" alt="负载均衡"></p>
+<p><img src="https://images2017.cnblogs.com/blog/883511/201709/883511-20170925115734901-1106073519.png" alt="读写分离"></p>
+<p>官网地址: <a href="https://mariadb.com/kb/en/mariadb-enterprise/mariadb-maxscale-20/" target="_blank" rel="noopener">https://mariadb.com/kb/en/mariadb-enterprise/mariadb-maxscale-20/</a></p>
+<p>利用Maxscale实现MySQL读写分离：<a href="https://www.cnblogs.com/darren-lee/p/7591416.html" target="_blank" rel="noopener">https://www.cnblogs.com/darren-lee/p/7591416.html</a></p>
+<h4 id="2-1-4-活跃-Galera-Cluster-MariaDB"><a href="#2-1-4-活跃-Galera-Cluster-MariaDB" class="headerlink" title="2.1.4 [活跃]-Galera-Cluster(MariaDB)"></a>2.1.4 [活跃]-Galera-Cluster(MariaDB)</h4><p>Mariadb Galera Cluster是一款优秀的中间件软件，同样可以实现读写分离，负载均衡等功能，并且稳定性要大大超过MySQL-Proxy，建议大家用来替代MySQL-Proxy，甚至MySQL-Cluster。</p>
+<p>浅谈MariaDB Galera Cluster架构: <a href="https://www.cnblogs.com/vadim/p/6930566.html" target="_blank" rel="noopener">https://www.cnblogs.com/vadim/p/6930566.html</a></p>
+<h3 id="2-2-停滞或未开源的项目"><a href="#2-2-停滞或未开源的项目" class="headerlink" title="2.2 停滞或未开源的项目"></a>2.2 停滞或未开源的项目</h3><h4 id="2-2-1-停滞-MySQL-Proxy-官方"><a href="#2-2-1-停滞-MySQL-Proxy-官方" class="headerlink" title="2.2.1 [停滞]-MySQL-Proxy(官方)"></a>2.2.1 [停滞]-MySQL-Proxy(官方)</h4><p>mysql官方提供的mysql中间件服务，上游可接入若干个mysql-client，后端可连接若干个mysql-server。它使用mysql协议，任何使用mysql-client的上游无需修改任何代码，即可迁移至mysql-proxy上。MySQL Proxy强大的一项功能是实现“读写分离（Read/Write Splitting）”。基本的原理是让主数据库处理事务性查询，而从数据库处理SELECT查询。数据库复制被用来把事务性查询导致的变更同步到集群中的从数据库。</p>
+<p>MySQL-Proxy实现读写分离提高并发负载案例：<a href="http://blog.jobbole.com/94606/" target="_blank" rel="noopener">http://blog.jobbole.com/94606/</a></p>
+<p>MySQL-Proxy实际上非常不稳定，在高并发或有错误连接的情况下，进程很容易自动关闭，因此打开–keepalive参数让进程自动恢复是个比较好的办法，但还是不能从根本上解决问题，因此通常最稳妥的做法是在每个从服务器上安装一个MySQL-Proxy供自身使用，虽然比较低效但却能保证稳定性；</p>
+<h4 id="2-2-2-停滞-Atlas-MySQL-Proxy增强版"><a href="#2-2-2-停滞-Atlas-MySQL-Proxy增强版" class="headerlink" title="2.2.2 [停滞]-Atlas(MySQL-Proxy增强版)"></a>2.2.2 [停滞]-Atlas(MySQL-Proxy增强版)</h4><p>Atlas是由 Qihoo 360公司Web平台部基础架构团队开发维护的一个基于MySQL协议的数据中间层项目。它在MySQL官方推出的MySQL-Proxy 0.8.2版本的基础上，修改了大量bug，添加了很多功能特性。由于团队精力有限, 不再主要维护，很多Issue很难再继续满足。</p>
+<p>项目地址: <a href="https://github.com/Qihoo360/Atlas" target="_blank" rel="noopener">https://github.com/Qihoo360/Atlas</a></p>
+<h4 id="2-2-3-停滞-DBProxy-Atlas美团版"><a href="#2-2-3-停滞-DBProxy-Atlas美团版" class="headerlink" title="2.2.3 [停滞]-DBProxy(Atlas美团版)"></a>2.2.3 [停滞]-DBProxy(Atlas美团版)</h4><p>项目地址: <a href="https://github.com/Meituan-Dianping/DBProxy" target="_blank" rel="noopener">https://github.com/Meituan-Dianping/DBProxy</a></p>
+<p>DBProxy是由美团点评公司技术工程部DBA团队（北京）开发维护的一个基于MySQL协议的数据中间层。它在奇虎360公司开源的Atlas基础上，修改了部分bug，并且添加了很多特性。最后提交时间2016年。</p>
+<h4 id="2-2-4-未开源-MTAtlas-Atlas美团版"><a href="#2-2-4-未开源-MTAtlas-Atlas美团版" class="headerlink" title="2.2.4 [未开源]-MTAtlas(Atlas美团版)"></a>2.2.4 [未开源]-MTAtlas(Atlas美团版)</h4><p>原美团DBA团队在开源Atlas基础上做的一系列升级改造。在读写分离、单库分表的基础上，完成了分库分表的功能开发。</p>
+<h4 id="2-2-5-未开源-ArkProxy-极数云舟"><a href="#2-2-5-未开源-ArkProxy-极数云舟" class="headerlink" title="2.2.5 [未开源]-ArkProxy(极数云舟)"></a>2.2.5 [未开源]-ArkProxy(极数云舟)</h4><p>极数云舟(<a href="http://www.cloud-ark.com" target="_blank" rel="noopener">http://www.cloud-ark.com</a>) 公司开发的数据库中间件，核心特性包括:透明读写分离,兼容性,友好性,权重分发,消息压缩,从库接入,用户连接数限制及统计,丰富的参数配置,连接池,失败重试。</p>
+<p><img src="http://www.cloud-ark.com/static/product_img/Arkproxy.png" alt="ArkProxy"></p>
+<h4 id="2-2-6-停滞-Amoeba-阿里"><a href="#2-2-6-停滞-Amoeba-阿里" class="headerlink" title="2.2.6 [停滞]-Amoeba(阿里)"></a>2.2.6 [停滞]-Amoeba(阿里)</h4><p>Amoeba是淘宝的得力作品。支持读写分离，表和库级别的读写分离，数据库水平分割，垂直分割，还有集群。mysql-proxy 只是轻量级的读写分离程序，虽然C写的，但是驱动是需要lua的脚本跑，而且在高并发下经常挂掉。程序还忽略了一些字符设定，如果数据库不是同一编码还会出现乱码,amoeba就不存在。</p>
+<p>Amoeba致力于MySQL的分布式数据库前端代理层，它主要在应用层访问MySQL的 时候充当SQL路由功能，专注于分布式数据库代理层（Database Proxy）开发。座落与 Client、DB Server(s)之间,对客户端透明。具有负载均衡、高可用性、SQL 过滤、读写分离、可路由相关的到目标数据库、可并发请求多台数据库合并结果。</p>
+<p>Amoeba作者陈思儒离职去盛大之后，阿里巴巴内部考虑到Amoeba的稳定性、性能和功能支持，以及其他因素，重新设立了一个项目组并且更换名称为Cobar，现在Cobar已经开源了，详情见： <a href="http://www.mysqlops.com/2012/06/19/cobar-alibaba.html" target="_blank" rel="noopener">http://www.mysqlops.com/2012/06/19/cobar-alibaba.html</a></p>
+<p>项目地址：<a href="https://sourceforge.net/projects/amoeba/" target="_blank" rel="noopener">https://sourceforge.net/projects/amoeba/</a></p>
+<h2 id="3-数据同步工具"><a href="#3-数据同步工具" class="headerlink" title="3.数据同步工具"></a>3.数据同步工具</h2><h3 id="3-1-离线-DataX"><a href="#3-1-离线-DataX" class="headerlink" title="3.1 [离线]-DataX"></a>3.1 [离线]-DataX</h3><p>阿里的Datax是比较优秀的产品，基于python，提供各种数据库的读写插件，多线程执行，使用起来也很简单，定义好配置json文件执行脚本就可以了，非常适合离线数据，增量数据可以使用一些编码的方式实现，但是也仅仅针对insert数据比较有效，update数据就不适合。</p>
+<p>github地址：<a href="https://github.com/alibaba/DataX" target="_blank" rel="noopener">https://github.com/alibaba/DataX</a></p>
+<h3 id="3-2-离线-Sqoop"><a href="#3-2-离线-Sqoop" class="headerlink" title="3.2 [离线]-Sqoop"></a>3.2 [离线]-Sqoop</h3><p>Sqoop(发音：skup)是一款开源的工具，主要用于在Hadoop(Hive)与传统的数据库(mysql、postgresql…)间进行数据的传递，可以将一个关系型数据库（例如 ： MySQL ,Oracle ,Postgres等）中的数据导进到Hadoop的HDFS中，也可以将HDFS的数据导进到关系型数据库中。Sqoop在数据库的支持的丰富性上不如DataX，但是如果你用hadoop，用sqoop是更好的选择，因为做Apache的顶级项目，他背后的支持远远比阿里一家公司靠谱的多。</p>
+<p>官网：<a href="http://sqoop.apache.org/" target="_blank" rel="noopener">http://sqoop.apache.org/</a></p>
+<h3 id="3-3-离线-Kettle"><a href="#3-3-离线-Kettle" class="headerlink" title="3.3 [离线]-Kettle"></a>3.3 [离线]-Kettle</h3><p>Kettle是一款国外开源的ETL工具，纯java编写，可以在Window、Linux、Unix上运行，数据抽取高效稳定。Kettle作为传统ETL工具，目前也都已经有了nosql数据库的支持，而且kettle还有图形界面可以用，使用起来简单多了。而且本来就是专门做ETL的，是Pentaho指定的ETL组件，对于数据清洗等处理数据的环节支持更好。但是数据效率一般，而且在生产环境也很少弄台windows机器，适合小项目，数据量比较小的同步。</p>
+<p>Kettle 中文名称叫水壶，该项目的主程序员MATT 希望把各种数据放到一个壶里，然后以一种指定的格式流出。</p>
+<p>官网：<a href="https://community.hitachivantara.com/docs/DOC-1009855" target="_blank" rel="noopener">https://community.hitachivantara.com/docs/DOC-1009855</a></p>
+<h3 id="3-4-实时-Canal"><a href="#3-4-实时-Canal" class="headerlink" title="3.4 [实时]-Canal"></a>3.4 [实时]-Canal</h3><p>Canal是基于mysql的binlog进行数据同步的中间件。简单来说，Canal 会将自己伪装成 MySQL 从节点（Slave），并从主节点（Master）获取 Binlog，解析和贮存后供下游消费端使用。Canal 包含两个组成部分：服务端和客户端。服务端负责连接至不同的 MySQL 实例，并为每个实例维护一个事件消息队列；客户端则可以订阅这些队列中的数据变更事件，处理并存储到数据仓库中。</p>
+<p>使用的话，安装好canal，配置好数据库参数，再编写一个客户端消费canal传过来的数据就可以了。</p>
+<p>github地址：<a href="https://github.com/alibaba/canal" target="_blank" rel="noopener">https://github.com/alibaba/canal</a></p>
+<h3 id="3-5-实时-Otter"><a href="#3-5-实时-Otter" class="headerlink" title="3.5 [实时]-Otter"></a>3.5 [实时]-Otter</h3><p>otter是在canal基础上又重新实现了可配置的消费者，使用otter的话，刚才说过的消费者就不需要写了，而otter提供了一个web界面，可以自定义同步任务及map表。非常适合mysql库之间的同步。而且通过retl_buff表的监控，也可以实现一些全量数据的同步。</p>
+<p>但是otter也有一些不好的地方，比如界面上的参数并不是所有的都有用，文档写的一般，不是很清晰。但是想想省了好多事，还是非常好的一款中间件。</p>
+<p>github地址：<a href="https://github.com/alibaba/otter" target="_blank" rel="noopener">https://github.com/alibaba/otter</a></p>
+<h3 id="3-6-实时-Databus"><a href="#3-6-实时-Databus" class="headerlink" title="3.6 [实时]-Databus"></a>3.6 [实时]-Databus</h3><p>Databus是LinkedIn开源的一款低延迟的分布式数据库同步系统（a source-agnostic distributed change data capture system），它提供可靠的数据捕获、流转和数据处理功能。Databus将数据库作为唯一真实数据来源，并将变更从事务或提交日志中提取出来，然后通知相关的衍生数据库或缓存。 Databus传输层端到端的延迟是微秒级别的，这意味着每台服务器每秒可以处理数千次数据吞吐变更事件,同时还支持无限回溯能力和丰富的变更订阅功能，</p>
+<p>项目地址: <a href="https://github.com/linkedin/databus" target="_blank" rel="noopener">https://github.com/linkedin/databus</a></p>
+<h3 id="3-7-实时-MySQL主从同步"><a href="#3-7-实时-MySQL主从同步" class="headerlink" title="3.7 [实时]-MySQL主从同步"></a>3.7 [实时]-MySQL主从同步</h3><p><strong>1.asynchronous 异步复制</strong></p>
+<p>原理：在异步复制中，master写数据到binlog且sync，无需等待slave。slave request binlog后写入relay-log并flush disk。</p>
+<p>优点：复制的性能最好</p>
+<p>缺点：master挂掉后，slave可能会丢失事务</p>
+<p>代表：MySQL原生的复制</p>
+<p><img src="https://yqfile.alicdn.com/f30dd5a58ea24c87365127b3951a067a3c23134d.jpeg" alt="异步复制"></p>
+<p><strong>2.fully synchronous 全同步复制</strong></p>
+<p>原理：在全同步复制中，master写数据到binlog且sync，所有slave request binlog后写入relay-log并flush disk，并且回放完日志再commit。</p>
+<p>优点：数据不会丢失</p>
+<p>缺点：会阻塞master session，性能太差，非常依赖网络</p>
+<p>代表：MySQL-Cluster</p>
+<p><img src="https://yqfile.alicdn.com/99ecf19b4f839b8a6df909c5584a5a0144f090fa.jpeg" alt="全同步复制"></p>
+<p><strong>3.semi synchronous 半同步复制</strong></p>
+<p>原理: 在半同步复制中，master写数据到binlog且sync，且commit，然后一直等待ACK。当至少一个slave request bilog后写入到relay-log并flush disk，就返回ack（不需要回放完日志）</p>
+<p>优点：会有数据丢失风险（低）</p>
+<p>缺点：会阻塞master session，性能差，非常依赖网络</p>
+<p>代表：after commit, 原生的半同步</p>
+<p>重点：由于master是在三段提交的最后commit阶段完成后才等待，所以master的其他session是可以看到这个提交事务的，所以这时候master上的数据和slave不一致，master crash后，slave数据丢失。</p>
+<p><img src="https://yqfile.alicdn.com/7f465154accff14368ff16d0b011dfc1b82cbac6.jpeg" alt="半同步复制"></p>
+<p><strong>4.lossless replication 无损复制</strong></p>
+<p>原理: 在半同步复制中，master写数据到binlog且sync，然后一直等待ACK. 当至少一个slave request bilog后写入到relay-log并flush disk，就返回ack（不需要回放完日志）</p>
+<p>优点：数据零丢失（前提是让其一直是lossless replication），性能好</p>
+<p>缺点：会阻塞master session，非常依赖网络</p>
+<p>代表：after sync, 原生的半同步</p>
+<p>重点：由于master是在三段提交的第二阶段sync binlog完成后才等待, 所以master的其他session是看不见这个提交事务的，所以这时候master上的数据和slave一致，master crash后，slave没有丢失数据。</p>
+<p><img src="https://yqfile.alicdn.com/6c77a9f51c3a9cdb0e783607752ebcbad01cbbf3.jpeg" alt="无损复制"></p>
+<h2 id="4-延迟同步如何解决？"><a href="#4-延迟同步如何解决？" class="headerlink" title="4.延迟同步如何解决？"></a>4.延迟同步如何解决？</h2><h3 id="4-1-主从同步的原理"><a href="#4-1-主从同步的原理" class="headerlink" title="4.1 主从同步的原理"></a>4.1 主从同步的原理</h3><p>主库针对写操作，顺序写binlog，从库单线程去主库顺序读”写操作的binlog”，从库取到binlog在本地原样执行（随机写），来保证主从数据逻辑上一致。mysql的主从复制都是单线程的操作，主库对所有DDL和DML产生binlog，binlog是顺序写，所以效率很高，slave的Slave_IO_Running线程到主库取日志，效率比较高，下一步，问题来了，slave的Slave_SQL_Running线程将主库的DDL和DML操作在slave实施。DML和DDL的IO操作是随即的，不是顺序的，成本高很多，还可能可slave上的其他查询产生lock争用，由于Slave_SQL_Running也是单线程的，所以一个DDL卡主了，需要执行10分钟，那么所有之后的DDL会等待这个DDL执行完才会继续执行，这就导致了延时。master可以并发，Slave_SQL_Running线程不可以并发。</p>
+<h3 id="4-2-延迟怎么产生的"><a href="#4-2-延迟怎么产生的" class="headerlink" title="4.2 延迟怎么产生的"></a>4.2 延迟怎么产生的</h3><p>当主库的TPS并发较高时，产生的DDL数量超过slave一个sql线程所能承受的范围，那么延时就产生了，当然还有就是可能与slave的大型query语句产生了锁等待。</p>
+<p>首要原因：数据库在业务上读写压力太大，CPU计算负荷大，网卡负荷大，硬盘随机IO太高。</p>
+<p>次要原因：读写binlog带来的性能影响，网络传输延迟。</p>
+<h3 id="4-3-同步延迟解决方案"><a href="#4-3-同步延迟解决方案" class="headerlink" title="4.3 同步延迟解决方案"></a>4.3 同步延迟解决方案</h3><p><strong>一、架构方面</strong></p>
+<p>1.业务的持久化层的实现采用分库架构，mysql服务可平行扩展，分散压力。</p>
+<p>2.单个库读写分离，一主多从，主写从读，分散压力。这样从库压力比主库高，保护主库。</p>
+<p>3.服务的基础架构在业务和mysql之间加入memcache或者redis的cache层。降低mysql的读压力。</p>
+<p>4.不同业务的mysql物理上放在不同机器，分散压力。</p>
+<p>5.使用比主库更好的硬件设备作为slave</p>
+<p>总结，mysql压力小，延迟自然会变小。</p>
+<p><strong>二、硬件方面</strong></p>
+<p>1.采用好服务器，比如4u比2u性能明显好，2u比1u性能明显好。</p>
+<p>2.存储用ssd或者盘阵或者san，提升随机写的性能。</p>
+<p>3.主从间保证处在同一个交换机下面，并且是万兆环境。</p>
+<p>总结，硬件强劲，延迟自然会变小。一句话，缩小延迟的解决方案就是花钱和花时间。</p>
+<p><strong>三、主从同步加速</strong></p>
+<p>1、sync_binlog在slave端设置为0</p>
+<p>2、–logs-slave-updates 从服务器从主服务器接收到的更新不记入它的二进制日志。</p>
+<p>3、直接禁用slave端的binlog</p>
+<p>4、slave端，如果使用的存储引擎是innodb，innodb_flush_log_at_trx_commit =2</p>
+<p><strong>四、文件系统属性优化</strong></p>
+<p>master端修改linux、Unix文件系统中文件的etime属性， 由于每当读文件时OS都会将读取操作发生的时间回写到磁盘上，对于读操作频繁的数据库文件来说这是没必要的，只会增加磁盘系统的负担影响I/O性能。可以通过设置文件系统的mount属性，组织操作系统写atime信息，在linux上的操作为：<br>打开/etc/fstab，加上noatime参数 /dev/sdb1 /data reiserfs noatime 1 2 然后重新mount文件系统 #mount -oremount /data</p>
+<h2 id="5-参考资料"><a href="#5-参考资料" class="headerlink" title="5.参考资料"></a>5.参考资料</h2><p>MySQL的读写分离的几种选择；<a href="https://www.cnblogs.com/fyc119/p/7529902.html" target="_blank" rel="noopener">https://www.cnblogs.com/fyc119/p/7529902.html</a></p>
+<p>mysql的读写分离Amoeba：<a href="http://blog.51cto.com/freeze/860111" target="_blank" rel="noopener">http://blog.51cto.com/freeze/860111</a></p>
+<p>Amoeba搞定mysql主从读写分离: <a href="http://blog.chinaunix.net/uid-20639775-id-154600.html" target="_blank" rel="noopener">http://blog.chinaunix.net/uid-20639775-id-154600.html</a></p>
+<p>MySQL主从延时这么长，要怎么优化？: <a href="https://mp.weixin.qq.com/s/pP2f7CYbT7ftM0tvk9c4mQ" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/pP2f7CYbT7ftM0tvk9c4mQ</a></p>
+<p>mysql数据库从库同步延迟的问题：<a href="https://blog.csdn.net/caomiao2006/article/details/51011373" target="_blank" rel="noopener">https://blog.csdn.net/caomiao2006/article/details/51011373</a></p>
+<p>MySQL 主从同步延迟的原因及解决办法：<a href="https://blog.csdn.net/Soar_Away/article/details/72615012" target="_blank" rel="noopener">https://blog.csdn.net/Soar_Away/article/details/72615012</a></p>
+<p>数据同步工具: <a href="https://blog.csdn.net/frog4/article/details/79624664" target="_blank" rel="noopener">https://blog.csdn.net/frog4/article/details/79624664</a></p>
+<p>Databus简介: <a href="https://blog.csdn.net/acm_lkl/article/details/78645406" target="_blank" rel="noopener">https://blog.csdn.net/acm_lkl/article/details/78645406</a></p>
+<p>DataBus&amp;Canal对比: <a href="http://www.cnblogs.com/xunshao/p/9762377.html" target="_blank" rel="noopener">http://www.cnblogs.com/xunshao/p/9762377.html</a></p>
+<p>MySQL无损复制： <a href="https://yq.aliyun.com/articles/59258" target="_blank" rel="noopener">https://yq.aliyun.com/articles/59258</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/MySQL/" rel="tag"># MySQL</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/01/2018-12-01-MySQL分库分表方案选型/" rel="next" title="MySQL分库分表方案选型">
+                <i class="fa fa-chevron-left"></i> MySQL分库分表方案选型
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/03/2018-12-03-TiDB数据库指南/" rel="prev" title="TiDB数据库指南">
+                TiDB数据库指南 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">lvyafei</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">38</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-读写分离方案"><span class="nav-text">1.读写分离方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-修改源码"><span class="nav-text">1.1 修改源码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-自研"><span class="nav-text">1.2 自研</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-中间件"><span class="nav-text">1.3 中间件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-读写分离中间件"><span class="nav-text">2.读写分离中间件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-活跃中的项目"><span class="nav-text">2.1 活跃中的项目</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-1-活跃-MySQL-Router-官方"><span class="nav-text">2.1.1 [活跃]-MySQL-Router(官方)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-2-活跃-MySQL-Cluster-官方"><span class="nav-text">2.1.2 [活跃]-MySQL-Cluster(官方)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-3-活跃-MaxScale-MariaDB"><span class="nav-text">2.1.3 [活跃]-MaxScale(MariaDB)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-4-活跃-Galera-Cluster-MariaDB"><span class="nav-text">2.1.4 [活跃]-Galera-Cluster(MariaDB)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-停滞或未开源的项目"><span class="nav-text">2.2 停滞或未开源的项目</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-1-停滞-MySQL-Proxy-官方"><span class="nav-text">2.2.1 [停滞]-MySQL-Proxy(官方)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-2-停滞-Atlas-MySQL-Proxy增强版"><span class="nav-text">2.2.2 [停滞]-Atlas(MySQL-Proxy增强版)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-3-停滞-DBProxy-Atlas美团版"><span class="nav-text">2.2.3 [停滞]-DBProxy(Atlas美团版)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-4-未开源-MTAtlas-Atlas美团版"><span class="nav-text">2.2.4 [未开源]-MTAtlas(Atlas美团版)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-5-未开源-ArkProxy-极数云舟"><span class="nav-text">2.2.5 [未开源]-ArkProxy(极数云舟)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-6-停滞-Amoeba-阿里"><span class="nav-text">2.2.6 [停滞]-Amoeba(阿里)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-数据同步工具"><span class="nav-text">3.数据同步工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-离线-DataX"><span class="nav-text">3.1 [离线]-DataX</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-离线-Sqoop"><span class="nav-text">3.2 [离线]-Sqoop</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-离线-Kettle"><span class="nav-text">3.3 [离线]-Kettle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-实时-Canal"><span class="nav-text">3.4 [实时]-Canal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-实时-Otter"><span class="nav-text">3.5 [实时]-Otter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-实时-Databus"><span class="nav-text">3.6 [实时]-Databus</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-实时-MySQL主从同步"><span class="nav-text">3.7 [实时]-MySQL主从同步</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-延迟同步如何解决？"><span class="nav-text">4.延迟同步如何解决？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-主从同步的原理"><span class="nav-text">4.1 主从同步的原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-延迟怎么产生的"><span class="nav-text">4.2 延迟怎么产生的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-同步延迟解决方案"><span class="nav-text">4.3 同步延迟解决方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-参考资料"><span class="nav-text">5.参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lvyafei</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

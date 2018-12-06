@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="MQ,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="1. RocketMQ概述“根据我们的研究，随着使用的队列和虚拟主题的增加，ActiveMQ IO模块成为瓶颈。我们尽力通过节流，断路器或降级解决这个问题，但效果不佳。因此，我们开始关注当时流行的消息传递解决方案Kafka。不幸的是，Kafka无法满足我们的要求，特别是在低延迟和高可靠性方面，详见 http://rocketmq.apache.org/rocketmq/how-to-support">
+<meta name="keywords" content="MQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RocketMQ中间件指南">
+<meta property="og:url" content="http://lvyafei.github.io/2018/12/05/2018-12-05-RocketMQ中间件指南/index.html">
+<meta property="og:site_name" content="FeSa">
+<meta property="og:description" content="1. RocketMQ概述“根据我们的研究，随着使用的队列和虚拟主题的增加，ActiveMQ IO模块成为瓶颈。我们尽力通过节流，断路器或降级解决这个问题，但效果不佳。因此，我们开始关注当时流行的消息传递解决方案Kafka。不幸的是，Kafka无法满足我们的要求，特别是在低延迟和高可靠性方面，详见 http://rocketmq.apache.org/rocketmq/how-to-support">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://lvyafei.github.io/images/rocketmq/rmq-basic-arc.png">
+<meta property="og:image" content="http://lvyafei.github.io/images/rocketmq/交互流程.png">
+<meta property="og:image" content="http://lvyafei.github.io/images/rocketmq/事务消息实现.png">
+<meta property="og:image" content="http://lvyafei.github.io/images/rocketmq/存储机制.png">
+<meta property="og:updated_time" content="2018-12-06T01:42:34.704Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RocketMQ中间件指南">
+<meta name="twitter:description" content="1. RocketMQ概述“根据我们的研究，随着使用的队列和虚拟主题的增加，ActiveMQ IO模块成为瓶颈。我们尽力通过节流，断路器或降级解决这个问题，但效果不佳。因此，我们开始关注当时流行的消息传递解决方案Kafka。不幸的是，Kafka无法满足我们的要求，特别是在低延迟和高可靠性方面，详见 http://rocketmq.apache.org/rocketmq/how-to-support">
+<meta name="twitter:image" content="http://lvyafei.github.io/images/rocketmq/rmq-basic-arc.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://lvyafei.github.io/2018/12/05/2018-12-05-RocketMQ中间件指南/">
+
+
+
+
+
+  <title>RocketMQ中间件指南 | FeSa</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">FeSa</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">develop & design</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="Searching..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://lvyafei.github.io/2018/12/05/2018-12-05-RocketMQ中间件指南/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lvyafei">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="FeSa">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RocketMQ中间件指南</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-12-05T00:00:00+08:00">
+                2018-12-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">中间件</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="1-RocketMQ概述"><a href="#1-RocketMQ概述" class="headerlink" title="1. RocketMQ概述"></a>1. RocketMQ概述</h2><p>“根据我们的研究，随着使用的队列和虚拟主题的增加，ActiveMQ IO模块成为瓶颈。我们尽力通过节流，断路器或降级解决这个问题，但效果不佳。因此，我们开始关注当时流行的消息传递解决方案Kafka。不幸的是，Kafka无法满足我们的要求，特别是在低延迟和高可靠性方面，详见 <a href="http://rocketmq.apache.org/rocketmq/how-to-support-more-queues-in-rocketmq/" target="_blank" rel="noopener">http://rocketmq.apache.org/rocketmq/how-to-support-more-queues-in-rocketmq/</a> ”<br><a id="more"></a></p>
+<p><img src="/images/rocketmq/rmq-basic-arc.png" alt="arc"></p>
+<p>RocketMQ有三种方式发送消息：可靠的同步(reliable synchronous),可靠的异步(reliable asynchronous)和单向传输(one-way transmission)。</p>
+<h3 id="1-1-同步发送producer-send"><a href="#1-1-同步发送producer-send" class="headerlink" title="1.1 同步发送producer.send"></a>1.1 同步发送producer.send</h3><p>可靠的同步传输用于广泛的场景，如重要的通知消息，短信通知，短信营销系统等。</p>
+<p>发送消息:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQProducer producer = <span class="keyword">new</span> DefaultMQProducer(<span class="string">"please_rename_unique_group_name"</span>);</span><br><span class="line">producer.setNamesrvAddr(<span class="string">"localhost:9876"</span>);</span><br><span class="line">producer.start();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">    <span class="comment">//Create a message instance, specifying topic, tag and message body.</span></span><br><span class="line">    Message msg = <span class="keyword">new</span> Message(<span class="string">"TopicTest"</span>,<span class="string">"TagA"</span>,(<span class="string">"Hello RocketMQ "</span> +i).getBytes(RemotingHelper.DEFAULT_CHARSET));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//Call send message to deliver message to one of brokers.</span></span><br><span class="line">    SendResult sendResult = producer.send(msg);</span><br><span class="line">    System.out.printf(<span class="string">"%s%n"</span>, sendResult);</span><br><span class="line">&#125;</span><br><span class="line">producer.shutdown();</span><br></pre></td></tr></table></figure>
+<p>接收消息:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQPushConsumer consumer = <span class="keyword">new</span> DefaultMQPushConsumer(<span class="string">"please_rename_unique_group_name"</span>);</span><br><span class="line">consumer.setNamesrvAddr(<span class="string">"localhost:9876"</span>);</span><br><span class="line">consumer.subscribe(<span class="string">"TopicTest"</span>, <span class="string">"*"</span>);</span><br><span class="line"></span><br><span class="line">consumer.registerMessageListener(<span class="keyword">new</span> MessageListenerConcurrently() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ConsumeConcurrentlyStatus <span class="title">consumeMessage</span><span class="params">(List&lt;MessageExt&gt; msgs,ConsumeConcurrentlyContext context)</span> </span>&#123;</span><br><span class="line">        System.out.printf(<span class="string">"%s Receive New Messages: %s %n"</span>, Thread.currentThread().getName(), msgs);</span><br><span class="line">        <span class="keyword">return</span> ConsumeConcurrentlyStatus.CONSUME_SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">consumer.start();</span><br></pre></td></tr></table></figure>
+<h3 id="1-2-异步发送producer-send-msg-new-SendCallback"><a href="#1-2-异步发送producer-send-msg-new-SendCallback" class="headerlink" title="1.2 异步发送producer.send(msg, new SendCallback())"></a>1.2 异步发送producer.send(msg, new SendCallback())</h3><p>异步传输通常用于响应时间敏感的业务场景。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQProducer producer = <span class="keyword">new</span> DefaultMQProducer(<span class="string">"please_rename_unique_group_name"</span>);</span><br><span class="line">producer.setNamesrvAddr(<span class="string">"localhost:9876"</span>);</span><br><span class="line">producer.start();</span><br><span class="line">producer.setRetryTimesWhenSendAsyncFailed(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> index = i;</span><br><span class="line">        <span class="comment">//Create a message instance, specifying topic, tag and message body.</span></span><br><span class="line">        Message msg = <span class="keyword">new</span> Message(<span class="string">"TopicTest"</span>,<span class="string">"TagA"</span>,<span class="string">"OrderID188"</span>,<span class="string">"Hello world"</span>.getBytes(RemotingHelper.DEFAULT_CHARSET));</span><br><span class="line"></span><br><span class="line">        producer.send(msg, <span class="keyword">new</span> SendCallback() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSuccess</span><span class="params">(SendResult sendResult)</span> </span>&#123;</span><br><span class="line">                System.out.printf(<span class="string">"%-10d OK %s %n"</span>, index,</span><br><span class="line">                    sendResult.getMsgId());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onException</span><span class="params">(Throwable e)</span> </span>&#123;</span><br><span class="line">                System.out.printf(<span class="string">"%-10d Exception %s %n"</span>, index, e);</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">&#125;</span><br><span class="line">producer.shutdown();</span><br></pre></td></tr></table></figure>
+<h3 id="1-3-单向发送producer-sendOneway"><a href="#1-3-单向发送producer-sendOneway" class="headerlink" title="1.3 单向发送producer.sendOneway"></a>1.3 单向发送producer.sendOneway</h3><p>单向传输用于需要中等可靠性的情况，例如日志收集。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQProducer producer = <span class="keyword">new</span> DefaultMQProducer(<span class="string">"please_rename_unique_group_name"</span>);</span><br><span class="line">producer.setNamesrvAddr(<span class="string">"localhost:9876"</span>);</span><br><span class="line">producer.start();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">    <span class="comment">//Create a message instance, specifying topic, tag and message body.</span></span><br><span class="line">    Message msg = <span class="keyword">new</span> Message(<span class="string">"TopicTest"</span>,<span class="string">"TagA"</span>,(<span class="string">"Hello RocketMQ "</span> +i).getBytes(RemotingHelper.DEFAULT_CHARSET));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//Call send message to deliver message to one of brokers.</span></span><br><span class="line">    producer.sendOneway(msg);</span><br><span class="line">&#125;</span><br><span class="line">producer.shutdown();</span><br></pre></td></tr></table></figure>
+<h3 id="1-4-分区发送producer-send-msg-new-MessageQueueSelector"><a href="#1-4-分区发送producer-send-msg-new-MessageQueueSelector" class="headerlink" title="1.4 分区发送producer.send(msg, new MessageQueueSelector())"></a>1.4 分区发送producer.send(msg, new MessageQueueSelector())</h3><p>发送消息:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">MQProducer producer = <span class="keyword">new</span> DefaultMQProducer(<span class="string">"example_group_name"</span>);</span><br><span class="line">producer.start();</span><br><span class="line">String[] tags = <span class="keyword">new</span> String[] &#123;<span class="string">"TagA"</span>, <span class="string">"TagB"</span>, <span class="string">"TagC"</span>, <span class="string">"TagD"</span>, <span class="string">"TagE"</span>&#125;;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">int</span> orderId = i % <span class="number">10</span>;</span><br><span class="line">    <span class="comment">//Create a message instance, specifying topic, tag and message body.</span></span><br><span class="line">    Message msg = <span class="keyword">new</span> Message(<span class="string">"TopicTestjjj"</span>, tags[i % tags.length], <span class="string">"KEY"</span> + i,(<span class="string">"Hello RocketMQ "</span> + i).getBytes(RemotingHelper.DEFAULT_CHARSET));</span><br><span class="line"></span><br><span class="line">    SendResult sendResult = producer.send(msg, <span class="keyword">new</span> MessageQueueSelector() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MessageQueue <span class="title">select</span><span class="params">(List&lt;MessageQueue&gt; mqs, Message msg, Object arg)</span> </span>&#123;</span><br><span class="line">        Integer id = (Integer) arg;</span><br><span class="line">        <span class="keyword">int</span> index = id % mqs.size();</span><br><span class="line">        <span class="keyword">return</span> mqs.get(index);</span><br><span class="line">    &#125;</span><br><span class="line">    &#125;, orderId);</span><br><span class="line"></span><br><span class="line">    System.out.printf(<span class="string">"%s%n"</span>, sendResult);</span><br><span class="line">&#125;</span><br><span class="line">producer.shutdown();</span><br></pre></td></tr></table></figure>
+<p>接收消息:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQPushConsumer consumer = <span class="keyword">new</span> DefaultMQPushConsumer(<span class="string">"example_group_name"</span>);</span><br><span class="line">consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);</span><br><span class="line">consumer.subscribe(<span class="string">"TopicTest"</span>, <span class="string">"TagA || TagC || TagD"</span>);</span><br><span class="line"></span><br><span class="line">consumer.registerMessageListener(<span class="keyword">new</span> MessageListenerOrderly() &#123;</span><br><span class="line"></span><br><span class="line">    AtomicLong consumeTimes = <span class="keyword">new</span> AtomicLong(<span class="number">0</span>);</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ConsumeOrderlyStatus <span class="title">consumeMessage</span><span class="params">(List&lt;MessageExt&gt; msgs,ConsumeOrderlyContext context)</span> </span>&#123;</span><br><span class="line">        context.setAutoCommit(<span class="keyword">false</span>);</span><br><span class="line">        System.out.printf(Thread.currentThread().getName() + <span class="string">" Receive New Messages: "</span> + msgs + <span class="string">"%n"</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">this</span>.consumeTimes.incrementAndGet();</span><br><span class="line">        <span class="keyword">if</span> ((<span class="keyword">this</span>.consumeTimes.get() % <span class="number">2</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> ConsumeOrderlyStatus.SUCCESS;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((<span class="keyword">this</span>.consumeTimes.get() % <span class="number">3</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> ConsumeOrderlyStatus.ROLLBACK;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((<span class="keyword">this</span>.consumeTimes.get() % <span class="number">4</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> ConsumeOrderlyStatus.COMMIT;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((<span class="keyword">this</span>.consumeTimes.get() % <span class="number">5</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">            context.setSuspendCurrentQueueTimeMillis(<span class="number">3000</span>);</span><br><span class="line">            <span class="keyword">return</span> ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ConsumeOrderlyStatus.SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">consumer.start();</span><br><span class="line">System.out.printf(<span class="string">"Consumer Started.%n"</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="1-5-广播消费consumer-setMessageModel"><a href="#1-5-广播消费consumer-setMessageModel" class="headerlink" title="1.5 广播消费consumer.setMessageModel"></a>1.5 广播消费consumer.setMessageModel</h3><p>发送消息:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQProducer producer = <span class="keyword">new</span> DefaultMQProducer(<span class="string">"ProducerGroupName"</span>);</span><br><span class="line">producer.start();</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++)&#123;</span><br><span class="line">    Message msg = <span class="keyword">new</span> Message(<span class="string">"TopicTest"</span>,<span class="string">"TagA"</span>,<span class="string">"OrderID188"</span>,<span class="string">"Hello world"</span>.getBytes(RemotingHelper.DEFAULT_CHARSET));</span><br><span class="line">    SendResult sendResult = producer.send(msg);</span><br><span class="line">    System.out.printf(<span class="string">"%s%n"</span>, sendResult);</span><br><span class="line">&#125;</span><br><span class="line">producer.shutdown();</span><br></pre></td></tr></table></figure>
+<p>接收消息:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQPushConsumer consumer = <span class="keyword">new</span> DefaultMQPushConsumer(<span class="string">"example_group_name"</span>);</span><br><span class="line">consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);</span><br><span class="line"></span><br><span class="line"><span class="comment">//set to broadcast mode</span></span><br><span class="line">consumer.setMessageModel(MessageModel.BROADCASTING);</span><br><span class="line">consumer.subscribe(<span class="string">"TopicTest"</span>, <span class="string">"TagA || TagC || TagD"</span>);</span><br><span class="line"></span><br><span class="line">consumer.registerMessageListener(<span class="keyword">new</span> MessageListenerConcurrently() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ConsumeConcurrentlyStatus <span class="title">consumeMessage</span><span class="params">(List&lt;MessageExt&gt; msgs,</span></span></span><br><span class="line"><span class="function"><span class="params">        ConsumeConcurrentlyContext context)</span> </span>&#123;</span><br><span class="line">        System.out.printf(Thread.currentThread().getName() + <span class="string">" Receive New Messages: "</span> + msgs + <span class="string">"%n"</span>);</span><br><span class="line">        <span class="keyword">return</span> ConsumeConcurrentlyStatus.CONSUME_SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">consumer.start();</span><br><span class="line">System.out.printf(<span class="string">"Broadcast Consumer Started.%n"</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="1-6-延迟发送message-setDelayTimeLevel"><a href="#1-6-延迟发送message-setDelayTimeLevel" class="headerlink" title="1.6 延迟发送message.setDelayTimeLevel"></a>1.6 延迟发送message.setDelayTimeLevel</h3><p>发送消息:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQProducer producer = <span class="keyword">new</span> DefaultMQProducer(<span class="string">"ExampleProducerGroup"</span>);</span><br><span class="line">producer.start();</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> totalMessagesToSend = <span class="number">100</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; totalMessagesToSend; i++) &#123;</span><br><span class="line"> Message message = <span class="keyword">new</span> Message(<span class="string">"TestTopic"</span>, (<span class="string">"Hello scheduled message "</span> + i).getBytes());</span><br><span class="line"></span><br><span class="line"> <span class="comment">// This message will be delivered to consumer 10 seconds later.</span></span><br><span class="line"> message.setDelayTimeLevel(<span class="number">3</span>);</span><br><span class="line"> producer.send(message);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">producer.shutdown();</span><br></pre></td></tr></table></figure>
+<p>接收消息:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQPushConsumer consumer = <span class="keyword">new</span> DefaultMQPushConsumer(<span class="string">"ExampleConsumer"</span>);</span><br><span class="line"><span class="comment">// Subscribe topics</span></span><br><span class="line">consumer.subscribe(<span class="string">"TestTopic"</span>, <span class="string">"*"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Register message listener</span></span><br><span class="line">consumer.registerMessageListener(<span class="keyword">new</span> MessageListenerConcurrently() &#123;</span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="function"><span class="keyword">public</span> ConsumeConcurrentlyStatus <span class="title">consumeMessage</span><span class="params">(List&lt;MessageExt&gt; messages, ConsumeConcurrentlyContext context)</span> </span>&#123;</span><br><span class="line">     <span class="keyword">for</span> (MessageExt message : messages) &#123;</span><br><span class="line">         <span class="comment">// Print approximate delay time period</span></span><br><span class="line">         System.out.println(<span class="string">"Receive message[msgId="</span> + message.getMsgId() + <span class="string">"] "</span></span><br><span class="line">                 + (System.currentTimeMillis() - message.getStoreTimestamp()) + <span class="string">"ms later"</span>);</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">return</span> ConsumeConcurrentlyStatus.CONSUME_SUCCESS;</span><br><span class="line"> &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">consumer.start();</span><br></pre></td></tr></table></figure>
+<h3 id="1-7-批量发送producer-send-new-ArrayList-lt-gt"><a href="#1-7-批量发送producer-send-new-ArrayList-lt-gt" class="headerlink" title="1.7 批量发送producer.send(new ArrayList&lt;&gt;())"></a>1.7 批量发送producer.send(new ArrayList&lt;&gt;())</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">String topic = <span class="string">"BatchTest"</span>;</span><br><span class="line">List&lt;Message&gt; messages = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">messages.add(<span class="keyword">new</span> Message(topic, <span class="string">"TagA"</span>, <span class="string">"OrderID001"</span>, <span class="string">"Hello world 0"</span>.getBytes()));</span><br><span class="line">messages.add(<span class="keyword">new</span> Message(topic, <span class="string">"TagA"</span>, <span class="string">"OrderID002"</span>, <span class="string">"Hello world 1"</span>.getBytes()));</span><br><span class="line">messages.add(<span class="keyword">new</span> Message(topic, <span class="string">"TagA"</span>, <span class="string">"OrderID003"</span>, <span class="string">"Hello world 2"</span>.getBytes()));</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    producer.send(messages);</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">    <span class="comment">//handle the error</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>只有在发送大批量时，复杂性才会增加，您可能不确定它是否超出了大小限制（1MiB）。</p>
+<h3 id="1-8-消费过滤MessageSelector-bySql"><a href="#1-8-消费过滤MessageSelector-bySql" class="headerlink" title="1.8 消费过滤MessageSelector.bySql"></a>1.8 消费过滤MessageSelector.bySql</h3><p>发送消息:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQProducer producer = <span class="keyword">new</span> DefaultMQProducer(<span class="string">"please_rename_unique_group_name"</span>);</span><br><span class="line">producer.start();</span><br><span class="line"></span><br><span class="line">Message msg = <span class="keyword">new</span> Message(<span class="string">"TopicTest"</span>,tag,(<span class="string">"Hello RocketMQ "</span> + i).getBytes(RemotingHelper.DEFAULT_CHARSET));</span><br><span class="line"><span class="comment">// Set some properties.</span></span><br><span class="line">msg.putUserProperty(<span class="string">"a"</span>, String.valueOf(i));</span><br><span class="line"></span><br><span class="line">SendResult sendResult = producer.send(msg);</span><br><span class="line">   </span><br><span class="line">producer.shutdown();</span><br></pre></td></tr></table></figure>
+<p>接收消息:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQPushConsumer consumer = <span class="keyword">new</span> DefaultMQPushConsumer(<span class="string">"please_rename_unique_group_name_4"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// only subsribe messages have property a, also a &gt;=0 and a &lt;= 3</span></span><br><span class="line">consumer.subscribe(<span class="string">"TopicTest"</span>, MessageSelector.bySql(<span class="string">"a between 0 and 3"</span>);</span><br><span class="line"></span><br><span class="line">consumer.registerMessageListener(<span class="keyword">new</span> MessageListenerConcurrently() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ConsumeConcurrentlyStatus <span class="title">consumeMessage</span><span class="params">(List&lt;MessageExt&gt; msgs, ConsumeConcurrentlyContext context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ConsumeConcurrentlyStatus.CONSUME_SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line">consumer.start();</span><br></pre></td></tr></table></figure>
+<h2 id="2-基于OpenMessaging收发消息"><a href="#2-基于OpenMessaging收发消息" class="headerlink" title="2. 基于OpenMessaging收发消息"></a>2. 基于OpenMessaging收发消息</h2><h3 id="2-1-同步发送producer-send"><a href="#2-1-同步发送producer-send" class="headerlink" title="2.1 同步发送producer.send"></a>2.1 同步发送producer.send</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> MessagingAccessPoint messagingAccessPoint = MessagingAccessPointFactory.getMessagingAccessPoint(<span class="string">"openmessaging:rocketmq://IP1:9876,IP2:9876/namespace"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> Producer producer = messagingAccessPoint.createProducer();</span><br><span class="line"></span><br><span class="line">messagingAccessPoint.startup();</span><br><span class="line">System.out.printf(<span class="string">"MessagingAccessPoint startup OK%n"</span>);</span><br><span class="line"></span><br><span class="line">producer.startup();</span><br><span class="line">System.out.printf(<span class="string">"Producer startup OK%n"</span>);</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    Message message = producer.createBytesMessageToTopic(<span class="string">"OMS_HELLO_TOPIC"</span>, <span class="string">"OMS_HELLO_BODY"</span>.getBytes(Charset.forName(<span class="string">"UTF-8"</span>)));</span><br><span class="line">    SendResult sendResult = producer.send(message);</span><br><span class="line">    System.out.printf(<span class="string">"Send sync message OK, msgId: %s%n"</span>, sendResult.messageId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-异步发送producer-sendAsync"><a href="#2-2-异步发送producer-sendAsync" class="headerlink" title="2.2 异步发送producer.sendAsync"></a>2.2 异步发送producer.sendAsync</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> MessagingAccessPoint messagingAccessPoint = MessagingAccessPointFactory.getMessagingAccessPoint(<span class="string">"openmessaging:rocketmq://IP1:9876,IP2:9876/namespace"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> Producer producer = messagingAccessPoint.createProducer();</span><br><span class="line"></span><br><span class="line">messagingAccessPoint.startup();</span><br><span class="line">System.out.printf(<span class="string">"MessagingAccessPoint startup OK%n"</span>);</span><br><span class="line"></span><br><span class="line">producer.startup();</span><br><span class="line">System.out.printf(<span class="string">"Producer startup OK%n"</span>);</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">final</span> Promise&lt;SendResult&gt; result = producer.sendAsync(producer.createBytesMessageToTopic(<span class="string">"OMS_HELLO_TOPIC"</span>, <span class="string">"OMS_HELLO_BODY"</span>.getBytes(Charset.forName(<span class="string">"UTF-8"</span>))));</span><br><span class="line">    result.addListener(<span class="keyword">new</span> PromiseListener&lt;SendResult&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">operationCompleted</span><span class="params">(Promise&lt;SendResult&gt; promise)</span> </span>&#123;</span><br><span class="line">            System.out.printf(<span class="string">"Send async message OK, msgId: %s%n"</span>, promise.get().messageId());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">operationFailed</span><span class="params">(Promise&lt;SendResult&gt; promise)</span> </span>&#123;</span><br><span class="line">            System.out.printf(<span class="string">"Send async message Failed, error: %s%n"</span>, promise.getThrowable().getMessage());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-3-单向发送producer-sendOneway"><a href="#2-3-单向发送producer-sendOneway" class="headerlink" title="2.3 单向发送producer.sendOneway"></a>2.3 单向发送producer.sendOneway</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> MessagingAccessPoint messagingAccessPoint = MessagingAccessPointFactory.getMessagingAccessPoint(<span class="string">"openmessaging:rocketmq://IP1:9876,IP2:9876/namespace"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> Producer producer = messagingAccessPoint.createProducer();</span><br><span class="line"></span><br><span class="line">messagingAccessPoint.startup();</span><br><span class="line">System.out.printf(<span class="string">"MessagingAccessPoint startup OK%n"</span>);</span><br><span class="line"></span><br><span class="line">producer.startup();</span><br><span class="line">System.out.printf(<span class="string">"Producer startup OK%n"</span>);</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    producer.sendOneway(producer.createBytesMessageToTopic(<span class="string">"OMS_HELLO_TOPIC"</span>, <span class="string">"OMS_HELLO_BODY"</span>.getBytes(Charset.forName(<span class="string">"UTF-8"</span>))));</span><br><span class="line">    System.out.printf(<span class="string">"Send oneway message OK%n"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">producer.shutdown();</span><br><span class="line">messagingAccessPoint.shutdown();</span><br></pre></td></tr></table></figure>
+<h3 id="2-4-消费消息consumer-poll"><a href="#2-4-消费消息consumer-poll" class="headerlink" title="2.4 消费消息consumer.poll"></a>2.4 消费消息consumer.poll</h3><p>OMSPullConsumer:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> MessagingAccessPoint messagingAccessPoint = MessagingAccessPointFactory.getMessagingAccessPoint(<span class="string">"openmessaging:rocketmq://IP1:9876,IP2:9876/namespace"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> PullConsumer consumer = messagingAccessPoint.createPullConsumer(<span class="string">"OMS_HELLO_TOPIC"</span>,</span><br><span class="line">    OMS.newKeyValue().put(NonStandardKeys.CONSUMER_GROUP, <span class="string">"OMS_CONSUMER"</span>));</span><br><span class="line"></span><br><span class="line">messagingAccessPoint.startup();</span><br><span class="line">System.out.printf(<span class="string">"MessagingAccessPoint startup OK%n"</span>);</span><br><span class="line"></span><br><span class="line">consumer.startup();</span><br><span class="line">System.out.printf(<span class="string">"Consumer startup OK%n"</span>);</span><br><span class="line"></span><br><span class="line">Message message = consumer.poll();</span><br><span class="line"><span class="keyword">if</span> (message != <span class="keyword">null</span>) &#123;</span><br><span class="line">    String msgId = message.headers().getString(MessageHeader.MESSAGE_ID);</span><br><span class="line">    System.out.printf(<span class="string">"Received one message: %s%n"</span>, msgId);</span><br><span class="line">    consumer.ack(msgId);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">consumer.shutdown();</span><br><span class="line">messagingAccessPoint.shutdown();</span><br></pre></td></tr></table></figure>
+<h3 id="2-5-消费消息consumer-attachQueue"><a href="#2-5-消费消息consumer-attachQueue" class="headerlink" title="2.5 消费消息consumer.attachQueue"></a>2.5 消费消息consumer.attachQueue</h3><p>OMSPushConsumer:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> MessagingAccessPoint messagingAccessPoint = MessagingAccessPointFactory.getMessagingAccessPoint(<span class="string">"openmessaging:rocketmq://IP1:9876,IP2:9876/namespace"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> PushConsumer consumer = messagingAccessPoint.</span><br><span class="line">    createPushConsumer(OMS.newKeyValue().put(NonStandardKeys.CONSUMER_GROUP, <span class="string">"OMS_CONSUMER"</span>));</span><br><span class="line"></span><br><span class="line">messagingAccessPoint.startup();</span><br><span class="line">System.out.printf(<span class="string">"MessagingAccessPoint startup OK%n"</span>);</span><br><span class="line"></span><br><span class="line">Runtime.getRuntime().addShutdownHook(<span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        consumer.shutdown();</span><br><span class="line">        messagingAccessPoint.shutdown();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;));</span><br><span class="line"></span><br><span class="line">consumer.attachQueue(<span class="string">"OMS_HELLO_TOPIC"</span>, <span class="keyword">new</span> MessageListener() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onMessage</span><span class="params">(<span class="keyword">final</span> Message message, <span class="keyword">final</span> ReceivedMessageContext context)</span> </span>&#123;</span><br><span class="line">        System.out.printf(<span class="string">"Received one message: %s%n"</span>, message.headers().getString(MessageHeader.MESSAGE_ID));</span><br><span class="line">        context.ack();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="2-RocketMQ事务消息"><a href="#2-RocketMQ事务消息" class="headerlink" title="2. RocketMQ事务消息"></a>2. RocketMQ事务消息</h2><p>RocketMQ 事务消息设计则主要是为了解决 Producer 端的消息发送与本地事务执行的原子性问题，RocketMQ 的设计中 broker 与 producer 端的双向通信能力，使得 broker 天生可以作为一个事务协调者存在；而 RocketMQ 本身提供的存储机制，则为事务消息提供了持久化能力；RocketMQ 的高可用机制以及可靠消息设计，则为事务消息在系统在发生异常时，依然能够保证事务的最终一致性达成。</p>
+<h3 id="2-1-发送事务性消息"><a href="#2-1-发送事务性消息" class="headerlink" title="2.1 发送事务性消息"></a>2.1 发送事务性消息</h3><p>事务性消息有三种状态：</p>
+<p>（1）TransactionStatus.CommitTransaction：提交事务，这意味着允许消费者使用此消息。</p>
+<p>（2）TransactionStatus.RollbackTransaction：回滚事务，表示该消息将被删除而不允许使用。</p>
+<p>（3）TransactionStatus.Unknown：中间状态，表示需要MQ检查以确定状态。</p>
+<p>使用TransactionMQProducer类创建生成器客户端，并指定唯一的producerGroup，并且可以设置自定义线程池来处理检查请求。执行本地事务后，需要根据执行结果回复MQ，最终结果状态。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">TransactionListener transactionListener = <span class="keyword">new</span> TransactionListenerImpl();</span><br><span class="line">TransactionMQProducer producer = <span class="keyword">new</span> TransactionMQProducer(<span class="string">"please_rename_unique_group_name"</span>);</span><br><span class="line">ExecutorService executorService = <span class="keyword">new</span> ThreadPoolExecutor(<span class="number">2</span>, <span class="number">5</span>, <span class="number">100</span>, TimeUnit.SECONDS, <span class="keyword">new</span> ArrayBlockingQueue&lt;Runnable&gt;(<span class="number">2000</span>), <span class="keyword">new</span> ThreadFactory() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Thread <span class="title">newThread</span><span class="params">(Runnable r)</span> </span>&#123;</span><br><span class="line">        Thread thread = <span class="keyword">new</span> Thread(r);</span><br><span class="line">        thread.setName(<span class="string">"client-transaction-msg-check-thread"</span>);</span><br><span class="line">        <span class="keyword">return</span> thread;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">producer.setExecutorService(executorService);</span><br><span class="line">producer.setTransactionListener(transactionListener);</span><br><span class="line">producer.start();</span><br><span class="line"></span><br><span class="line">String[] tags = <span class="keyword">new</span> String[] &#123;<span class="string">"TagA"</span>, <span class="string">"TagB"</span>, <span class="string">"TagC"</span>, <span class="string">"TagD"</span>, <span class="string">"TagE"</span>&#125;;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Message msg =<span class="keyword">new</span> Message(<span class="string">"TopicTest1234"</span>, tags[i % tags.length], <span class="string">"KEY"</span> + i,(<span class="string">"Hello RocketMQ "</span> + i).getBytes(RemotingHelper.DEFAULT_CHARSET));</span><br><span class="line">        SendResult sendResult = producer.sendMessageInTransaction(msg, <span class="keyword">null</span>);</span><br><span class="line">        System.out.printf(<span class="string">"%s%n"</span>, sendResult);</span><br><span class="line"></span><br><span class="line">        Thread.sleep(<span class="number">10</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (MQClientException | UnsupportedEncodingException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100000</span>; i++) &#123;</span><br><span class="line">    Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">&#125;</span><br><span class="line">producer.shutdown();</span><br></pre></td></tr></table></figure>
+<p>实现TransactionListener接口</p>
+<p><strong>executeLocalTransaction</strong>：方法用于在发送Half消息成功时执行的本地事务。它返回三种事务状态之一。</p>
+<p><strong>checkLocalTransaction</strong>：方法用于检查本地事务状态并响应MQ检查请求。它返回三种事务状态之一。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TransactionListenerImpl</span> <span class="keyword">implements</span> <span class="title">TransactionListener</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> AtomicInteger transactionIndex = <span class="keyword">new</span> AtomicInteger(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">private</span> ConcurrentHashMap&lt;String, Integer&gt; localTrans = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> LocalTransactionState <span class="title">executeLocalTransaction</span><span class="params">(Message msg, Object arg)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">int</span> value = transactionIndex.getAndIncrement();</span><br><span class="line">       <span class="keyword">int</span> status = value % <span class="number">3</span>;</span><br><span class="line">       localTrans.put(msg.getTransactionId(), status);</span><br><span class="line">       <span class="keyword">return</span> LocalTransactionState.UNKNOW;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> LocalTransactionState <span class="title">checkLocalTransaction</span><span class="params">(MessageExt msg)</span> </span>&#123;</span><br><span class="line">       Integer status = localTrans.get(msg.getTransactionId());</span><br><span class="line">       <span class="keyword">if</span> (<span class="keyword">null</span> != status) &#123;</span><br><span class="line">           <span class="keyword">switch</span> (status) &#123;</span><br><span class="line">               <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">                   <span class="keyword">return</span> LocalTransactionState.UNKNOW;</span><br><span class="line">               <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">                   <span class="keyword">return</span> LocalTransactionState.COMMIT_MESSAGE;</span><br><span class="line">               <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">                   <span class="keyword">return</span> LocalTransactionState.ROLLBACK_MESSAGE;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">return</span> LocalTransactionState.COMMIT_MESSAGE;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-RocketMQ事务消息设计"><a href="#2-2-RocketMQ事务消息设计" class="headerlink" title="2.2 RocketMQ事务消息设计"></a>2.2 RocketMQ事务消息设计</h3><p>事务消息作为一种异步确保型事务，  将两个事务分支通过 MQ 进行异步解耦，RocketMQ 事务消息的设计流程同样借鉴了两阶段提交理论，整体交互流程如下图所示：</p>
+<p><img src="/images/rocketmq/交互流程.png" alt="交互流程"></p>
+<p>1.事务发起方首先发送 prepare 消息到 MQ。</p>
+<p>2.再发送 prepare 消息成功后执行本地事务。</p>
+<p>3.根据本地事务执行结果返回 commit 或者是 rollback。</p>
+<p>4.如果消息是 rollback，MQ 将删除该 prepare 消息不进行下发，如果是 commit 消息，MQ 将会把这个消息发送给 consumer 端。</p>
+<p><font color="red">5.如果执行本地事务过程中，执行端挂掉，或者超时，MQ 将会不停的询问其同组的其他 producer 来获取状态</font>。 </p>
+<p>6.consumer 端的消费成功机制有 MQ 保证。</p>
+<h3 id="2-3-RocketMQ事务消息实现"><a href="#2-3-RocketMQ事务消息实现" class="headerlink" title="2.3 RocketMQ事务消息实现"></a>2.3 RocketMQ事务消息实现</h3><p>RocketMQ 事务消息在实现上充分利用了 RocketMQ 本身机制，在实现零依赖的基础上，同样实现了高性能、可扩展、全异步等一系列特性。</p>
+<p>在具体实现上，RocketMQ 通过使用 Half Topic 以及 Operation Topic 两个内部队列来存储事务消息推进状态，如下图所示：</p>
+<p><img src="/images/rocketmq/事务消息实现.png" alt="事务消息实现"></p>
+<p>其中，Half Topic 对应队列中存放着 prepare 消息，Operation Topic 对应的队列则存放了 prepare message 对应的 commit/rollback 消息，消息体中则是 prepare message 对应的 offset，服务端通过比对两个队列的差值来找到尚未提交的超时事务，进行回查。</p>
+<p>在具体实现上，事务消息作为普通消息的一个应用场景，在实现过程中进行了分层抽象，从而避免了对 RocketMQ 原有存储机制的修改，如下图所示：</p>
+<p><img src="/images/rocketmq/存储机制.png" alt="存储机制"></p>
+<p>从用户侧来说，用户需要分别实现本地事务执行以及本地事务回查方法，因此只需关注本地事务的执行状态即可；而在 service 层，则对事务消息的两阶段提交进行了抽象，同时针对超时事务实现了回查逻辑，通过不断扫描当前事务推进状态，来不断反向请求 Producer 端获取超时事务的执行状态，在避免事务挂起的同时，也避免了 Producer 端的单点故障。而在存储层，RocketMQ 通过 Bridge 封装了与底层队列存储的相关操作，用以操作两个对应的内部队列，用户也可以依赖其他存储介质实现自己的 service，RocketMQ 会通过 ServiceProvider 加载进来。</p>
+<p>从上述事务消息设计中可以看到，RocketMQ 事务消息较好的解决了事务的最终一致性问题，事务发起方仅需要关注本地事务执行以及实现回查接口给出事务状态判定等实现，而且在上游事务峰值高时，可以通过消息队列，避免对下游服务产生过大压力。</p>
+<h2 id="3-参考资料"><a href="#3-参考资料" class="headerlink" title="3.参考资料"></a>3.参考资料</h2><p>RocketMQ官方文档： <a href="http://rocketmq.apache.org/docs/quick-start/" target="_blank" rel="noopener">http://rocketmq.apache.org/docs/quick-start/</a></p>
+<p>RocketMQ 4.3正式发布，支持分布式事务：<br><a href="https://mp.weixin.qq.com/s?__biz=MzI4MTY5NTk4Ng==&amp;mid=2247488985&amp;idx=1&amp;sn=cafd8ce4b47bf098c7e87846318eff4d&amp;source=41#wechat_redirect" target="_blank" rel="noopener">https://mp.weixin.qq.com/s?__biz=MzI4MTY5NTk4Ng==&amp;mid=2247488985&amp;idx=1&amp;sn=cafd8ce4b47bf098c7e87846318eff4d&amp;source=41#wechat_redirect</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/MQ/" rel="tag"># MQ</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/04/2018-12-04-Mycat中间件指南/" rel="next" title="Mycat中间件指南">
+                <i class="fa fa-chevron-left"></i> Mycat中间件指南
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/05/2018-12-05-分布式系统理论介绍/" rel="prev" title="分布式系统理论介绍">
+                分布式系统理论介绍 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">lvyafei</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">38</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-RocketMQ概述"><span class="nav-text">1. RocketMQ概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-同步发送producer-send"><span class="nav-text">1.1 同步发送producer.send</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-异步发送producer-send-msg-new-SendCallback"><span class="nav-text">1.2 异步发送producer.send(msg, new SendCallback())</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-单向发送producer-sendOneway"><span class="nav-text">1.3 单向发送producer.sendOneway</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-分区发送producer-send-msg-new-MessageQueueSelector"><span class="nav-text">1.4 分区发送producer.send(msg, new MessageQueueSelector())</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-广播消费consumer-setMessageModel"><span class="nav-text">1.5 广播消费consumer.setMessageModel</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-6-延迟发送message-setDelayTimeLevel"><span class="nav-text">1.6 延迟发送message.setDelayTimeLevel</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-7-批量发送producer-send-new-ArrayList-lt-gt"><span class="nav-text">1.7 批量发送producer.send(new ArrayList&lt;&gt;())</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-8-消费过滤MessageSelector-bySql"><span class="nav-text">1.8 消费过滤MessageSelector.bySql</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-基于OpenMessaging收发消息"><span class="nav-text">2. 基于OpenMessaging收发消息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-同步发送producer-send"><span class="nav-text">2.1 同步发送producer.send</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-异步发送producer-sendAsync"><span class="nav-text">2.2 异步发送producer.sendAsync</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-单向发送producer-sendOneway"><span class="nav-text">2.3 单向发送producer.sendOneway</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-消费消息consumer-poll"><span class="nav-text">2.4 消费消息consumer.poll</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-消费消息consumer-attachQueue"><span class="nav-text">2.5 消费消息consumer.attachQueue</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-RocketMQ事务消息"><span class="nav-text">2. RocketMQ事务消息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-发送事务性消息"><span class="nav-text">2.1 发送事务性消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-RocketMQ事务消息设计"><span class="nav-text">2.2 RocketMQ事务消息设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-RocketMQ事务消息实现"><span class="nav-text">2.3 RocketMQ事务消息实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-参考资料"><span class="nav-text">3.参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lvyafei</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
