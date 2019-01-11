@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="FeSa">
 <meta property="og:description" content="1. 前言由集中式应用到分布式应用的转变，带来了诸多的变化，虽然分布式应用解决了单体应用复杂性高、可靠性差、扩展能力受限等诸多问题，但原来在单体应用中容易实现的特性，在分布式应用中不再那么轻松实现，比如事务，锁等场景。这带来了很大的挑战。通过不断的探索，每种问题都有不同程度的解决方案。">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2018-12-25T03:28:04.073Z">
+<meta property="og:updated_time" content="2019-01-11T07:27:41.164Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="分布式事务实现方案">
 <meta name="twitter:description" content="1. 前言由集中式应用到分布式应用的转变，带来了诸多的变化，虽然分布式应用解决了单体应用复杂性高、可靠性差、扩展能力受限等诸多问题，但原来在单体应用中容易实现的特性，在分布式应用中不再那么轻松实现，比如事务，锁等场景。这带来了很大的挑战。通过不断的探索，每种问题都有不同程度的解决方案。">
@@ -388,10 +388,14 @@
 <blockquote>
 <p>分布式系统文章集合：</p>
 </blockquote>
+<p><strong>消息中间件(解耦利器)</strong></p>
 <p><strong>分布式锁</strong></p>
-<p><strong><a href="/2018/12/05/2018-12-05-分布式事务实现方案">分布式事务实现方案</a></strong></p>
+<p><strong><a href="/2018/12/05/2018-12-05-分布式事务实现方案">分布式事务</a></strong></p>
 <p><strong>分布式一致性</strong></p>
+<p><strong>分布式存储</strong></p>
 <p><strong>分布式Session</strong></p>
+<p><strong>分布式计算</strong></p>
+<p><strong>分布式调度</strong></p>
 <h2 id="2-分布式事务的挑战"><a href="#2-分布式事务的挑战" class="headerlink" title="2. 分布式事务的挑战"></a>2. 分布式事务的挑战</h2><p>事务是提供一种机制将一个活动涉及的所有操作纳入到一个不可分割的执行单元，组成事务的所有操作只有在所有操作均能正常执行的情况下方能提交，只要其中任一操作执行失败，都将导致整个事务的回滚。</p>
 <h3 id="2-1-数据库事务的特性"><a href="#2-1-数据库事务的特性" class="headerlink" title="2.1 数据库事务的特性"></a>2.1 数据库事务的特性</h3><p>ACID 指数据库事务正确执行的四个基本特性的缩写，包含：</p>
 <p><strong>原子性(Atomicity)</strong>：整个事务中的所有操作，要么全部完成，要么全部不完成，不可能停滞在中间某个环节。</p>
@@ -400,7 +404,9 @@
 <p><strong>持久性(Durability)</strong>：事务处理结束后，对数据的修改就是永久的，即便系统故障也不会丢失。</p>
 <p>在使用数据库事务时需要注意，尽可能短的保持事务，修改多个不同表的数据的冗长事务会严重妨碍系统中的所有其他用户，这很有可能导致一些性能问题。</p>
 <h3 id="2-2-JTA-amp-JTS-amp-Spring事务"><a href="#2-2-JTA-amp-JTS-amp-Spring事务" class="headerlink" title="2.2 JTA &amp; JTS &amp; Spring事务"></a>2.2 JTA &amp; JTS &amp; Spring事务</h3><h3 id="2-3-分布式事务"><a href="#2-3-分布式事务" class="headerlink" title="2.3 分布式事务"></a>2.3 分布式事务</h3><p>分布式系统一般由多个独立的子系统组成，多个子系统通过网络通信互相协作配合完成各个功能。有很多用例会跨多个子系统才能完成，而且这个过程中会涉及到事务的概念，即保证交易系统和支付系统的数据一致性，此处我们称这种跨系统的事务为分布式事务。</p>
-<h2 id="3-参考资料"><a href="#3-参考资料" class="headerlink" title="3. 参考资料"></a>3. 参考资料</h2><p>还不理解“分布式事务”？这篇给你讲清楚：<br><a href="http://developer.51cto.com/art/201812/588511.htm" target="_blank" rel="noopener">http://developer.51cto.com/art/201812/588511.htm</a></p>
+<h2 id="3-参考资料"><a href="#3-参考资料" class="headerlink" title="3. 参考资料"></a>3. 参考资料</h2><p>阿里分布式事务框架 GTS 全解析<br><a href="https://mp.weixin.qq.com/s/BqhGZDmTYLHlBCGBBOc-xg" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/BqhGZDmTYLHlBCGBBOc-xg</a></p>
+<p>深入理解「分布式事务」<br><a href="https://mp.weixin.qq.com/s/_iGYAgx_CSxIHBMLtwbpNg" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/_iGYAgx_CSxIHBMLtwbpNg</a></p>
+<p>还不理解“分布式事务”？这篇给你讲清楚：<br><a href="http://developer.51cto.com/art/201812/588511.htm" target="_blank" rel="noopener">http://developer.51cto.com/art/201812/588511.htm</a></p>
 <p>JTA 深度历险 - 原理与实现：<br><a href="http://www.cnblogs.com/firstdream/p/8514222.html" target="_blank" rel="noopener">http://www.cnblogs.com/firstdream/p/8514222.html</a></p>
 <p>分布式系统核心问题(一致性)：<br><a href="https://blog.csdn.net/zyhlwzy/article/details/78658002" target="_blank" rel="noopener">https://blog.csdn.net/zyhlwzy/article/details/78658002</a></p>
 <p>CAP原则(CAP定理)、BASE理论:<br><a href="http://www.cnblogs.com/duanxz/p/5229352.html" target="_blank" rel="noopener">http://www.cnblogs.com/duanxz/p/5229352.html</a></p>
@@ -607,7 +613,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

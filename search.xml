@@ -14,7 +14,7 @@
   <entry>
     <title><![CDATA[分布式事务实现方案]]></title>
     <url>%2F2018%2F12%2F05%2F2018-12-05-%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88%2F</url>
-    <content type="text"><![CDATA[1. 前言由集中式应用到分布式应用的转变，带来了诸多的变化，虽然分布式应用解决了单体应用复杂性高、可靠性差、扩展能力受限等诸多问题，但原来在单体应用中容易实现的特性，在分布式应用中不再那么轻松实现，比如事务，锁等场景。这带来了很大的挑战。通过不断的探索，每种问题都有不同程度的解决方案。 分布式系统文章集合： 分布式锁 分布式事务实现方案 分布式一致性 分布式Session 2. 分布式事务的挑战事务是提供一种机制将一个活动涉及的所有操作纳入到一个不可分割的执行单元，组成事务的所有操作只有在所有操作均能正常执行的情况下方能提交，只要其中任一操作执行失败，都将导致整个事务的回滚。 2.1 数据库事务的特性ACID 指数据库事务正确执行的四个基本特性的缩写，包含： 原子性(Atomicity)：整个事务中的所有操作，要么全部完成，要么全部不完成，不可能停滞在中间某个环节。 一致性(Consistency)：在事务开始之前和事务结束以后，数据库数据的一致性约束没有被破坏。 隔离性(Isolation)：数据库允许多个并发事务同时对数据进行读写和修改的能力，如果一个事务要访问的数据正在被另外一个事务修改，只要另外一个事务未提交，它所访问的数据就不受未提交事务的影响。隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。 持久性(Durability)：事务处理结束后，对数据的修改就是永久的，即便系统故障也不会丢失。 在使用数据库事务时需要注意，尽可能短的保持事务，修改多个不同表的数据的冗长事务会严重妨碍系统中的所有其他用户，这很有可能导致一些性能问题。 2.2 JTA &amp; JTS &amp; Spring事务2.3 分布式事务分布式系统一般由多个独立的子系统组成，多个子系统通过网络通信互相协作配合完成各个功能。有很多用例会跨多个子系统才能完成，而且这个过程中会涉及到事务的概念，即保证交易系统和支付系统的数据一致性，此处我们称这种跨系统的事务为分布式事务。 3. 参考资料还不理解“分布式事务”？这篇给你讲清楚：http://developer.51cto.com/art/201812/588511.htm JTA 深度历险 - 原理与实现：http://www.cnblogs.com/firstdream/p/8514222.html 分布式系统核心问题(一致性)：https://blog.csdn.net/zyhlwzy/article/details/78658002 CAP原则(CAP定理)、BASE理论:http://www.cnblogs.com/duanxz/p/5229352.html RocketMQ分布式消息队列设计:http://rocketmq.apache.org/docs/quick-start/ ===== Java常用类（一）之Object类详解https://www.cnblogs.com/zhangyinhua/p/7715486.html java-并发-ConcurrentHashMap高并发机制-jdk1.6https://blog.csdn.net/jianghuxiaojin/article/details/52006110 Java并发编程总结4——ConcurrentHashMap在jdk1.8中的改进http://www.cnblogs.com/everSeeker/p/5601861.html 重入锁：ReentrantLock 详解https://blog.csdn.net/Somhu/article/details/78874634 Java中Unsafe类详解https://www.cnblogs.com/thomas12112406/p/6510787.htmlhttps://www.cnblogs.com/throwable/p/9139947.html Java魔法类：sun.misc.Unsafehttps://www.cnblogs.com/suxuan/p/4948608.html 红黑树(一)之 原理和算法详细介绍https://www.cnblogs.com/skywang12345/p/3245399.html]]></content>
+    <content type="text"><![CDATA[1. 前言由集中式应用到分布式应用的转变，带来了诸多的变化，虽然分布式应用解决了单体应用复杂性高、可靠性差、扩展能力受限等诸多问题，但原来在单体应用中容易实现的特性，在分布式应用中不再那么轻松实现，比如事务，锁等场景。这带来了很大的挑战。通过不断的探索，每种问题都有不同程度的解决方案。 分布式系统文章集合： 消息中间件(解耦利器) 分布式锁 分布式事务 分布式一致性 分布式存储 分布式Session 分布式计算 分布式调度 2. 分布式事务的挑战事务是提供一种机制将一个活动涉及的所有操作纳入到一个不可分割的执行单元，组成事务的所有操作只有在所有操作均能正常执行的情况下方能提交，只要其中任一操作执行失败，都将导致整个事务的回滚。 2.1 数据库事务的特性ACID 指数据库事务正确执行的四个基本特性的缩写，包含： 原子性(Atomicity)：整个事务中的所有操作，要么全部完成，要么全部不完成，不可能停滞在中间某个环节。 一致性(Consistency)：在事务开始之前和事务结束以后，数据库数据的一致性约束没有被破坏。 隔离性(Isolation)：数据库允许多个并发事务同时对数据进行读写和修改的能力，如果一个事务要访问的数据正在被另外一个事务修改，只要另外一个事务未提交，它所访问的数据就不受未提交事务的影响。隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。 持久性(Durability)：事务处理结束后，对数据的修改就是永久的，即便系统故障也不会丢失。 在使用数据库事务时需要注意，尽可能短的保持事务，修改多个不同表的数据的冗长事务会严重妨碍系统中的所有其他用户，这很有可能导致一些性能问题。 2.2 JTA &amp; JTS &amp; Spring事务2.3 分布式事务分布式系统一般由多个独立的子系统组成，多个子系统通过网络通信互相协作配合完成各个功能。有很多用例会跨多个子系统才能完成，而且这个过程中会涉及到事务的概念，即保证交易系统和支付系统的数据一致性，此处我们称这种跨系统的事务为分布式事务。 3. 参考资料阿里分布式事务框架 GTS 全解析https://mp.weixin.qq.com/s/BqhGZDmTYLHlBCGBBOc-xg 深入理解「分布式事务」https://mp.weixin.qq.com/s/_iGYAgx_CSxIHBMLtwbpNg 还不理解“分布式事务”？这篇给你讲清楚：http://developer.51cto.com/art/201812/588511.htm JTA 深度历险 - 原理与实现：http://www.cnblogs.com/firstdream/p/8514222.html 分布式系统核心问题(一致性)：https://blog.csdn.net/zyhlwzy/article/details/78658002 CAP原则(CAP定理)、BASE理论:http://www.cnblogs.com/duanxz/p/5229352.html RocketMQ分布式消息队列设计:http://rocketmq.apache.org/docs/quick-start/ ===== Java常用类（一）之Object类详解https://www.cnblogs.com/zhangyinhua/p/7715486.html java-并发-ConcurrentHashMap高并发机制-jdk1.6https://blog.csdn.net/jianghuxiaojin/article/details/52006110 Java并发编程总结4——ConcurrentHashMap在jdk1.8中的改进http://www.cnblogs.com/everSeeker/p/5601861.html 重入锁：ReentrantLock 详解https://blog.csdn.net/Somhu/article/details/78874634 Java中Unsafe类详解https://www.cnblogs.com/thomas12112406/p/6510787.htmlhttps://www.cnblogs.com/throwable/p/9139947.html Java魔法类：sun.misc.Unsafehttps://www.cnblogs.com/suxuan/p/4948608.html 红黑树(一)之 原理和算法详细介绍https://www.cnblogs.com/skywang12345/p/3245399.html]]></content>
       <categories>
         <category>分布式</category>
       </categories>
@@ -267,6 +267,17 @@
       </tags>
   </entry>
   <entry>
+    <title><![CDATA[机器学习算法-相似度-HammingDistance(汉明距离)]]></title>
+    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-HammingDistance(%E6%B1%89%E6%98%8E%E8%B7%9D%E7%A6%BB)%2F</url>
+    <content type="text"><![CDATA[0.概述两个等长字符串s1与s2之间的汉明距离定义为将其中一个变为另外一个所需要作的最小替换次数。例如字符串“1111”与“1001”之间的汉明距离为2。 1.应用场景信息编码（为了增强容错性，应使得编码间的最小汉明距离尽可能大）。 2.Octave实例]]></content>
+      <categories>
+        <category>相似度算法</category>
+      </categories>
+      <tags>
+        <tag>机器学习</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[机器学习算法-相似度-CosineSimilarity(余弦相似度)]]></title>
     <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-CosineSimilarity(%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E5%BA%A6)%2F</url>
     <content type="text"><![CDATA[0.概述余弦相似度用向量空间中两个向量夹角的余弦值作为衡量两个个体间差异的大小。相比距离度量，余弦相似度更加注重两个向量在方向上的差异，而非距离或长度上。 1.余弦相似度描述 与欧几里德距离类似，基于余弦相似度的计算方法也是把用户的喜好作为n-维坐标系中的一个点，通过连接这个点与坐标系的原点构成一条直线（向量），两个用户之间的相似度值就是两条直线（向量）间夹角的余弦值。因为连接代表用户评分的点与原点的直线都会相交于原点，夹角越小代表两个用户越相似，夹角越大代表两个用户的相似度越小。同时在三角系数中，角的余弦值是在[-1, 1]之间的，0度角的余弦值是1，180角的余弦值是-1。 2.欧氏距离和余弦相似度的区别 从图上可以看出距离度量衡量的是空间各点间的绝对距离，跟各个点所在的位置坐标（即个体特征维度的数值）直接相关；而余弦相似度衡量的是空间向量的夹角，更加的是体现在方向上的差异，而不是位置。如果保持A点的位置不变，B点朝原方向远离坐标轴原点，那么这个时候余弦相似度cosθ是保持不变的，因为夹角不变，而A、B两点的距离显然在发生改变，这就是欧氏距离和余弦相似度的不同之处。 根据欧氏距离和余弦相似度各自的计算方式和衡量特征，分别适用于不同的数据分析模型：欧氏距离能够体现个体数值特征的绝对差异，所以更多的用于需要从维度的数值大小中体现差异的分析，如使用用户行为指标分析用户价值的相似度或差异；而余弦相似度更多的是从方向上区分差异，而对绝对的数值不敏感，更多的用于使用用户对内容评分来区分用户兴趣的相似度和差异，同时修正了用户间可能存在的度量标准不统一的问题（因为余弦相似度对绝对数值不敏感）。 3.调整余弦相似度——AdjustedCosineSimilarity在余弦相似度的介绍中说到：余弦相似度更多的是从方向上区分差异，而对绝对的数值不敏感。因此没法衡量每个维数值的差异，会导致这样一个情况：比如用户对内容评分，5分制，X和Y两个用户对两个内容的评分分别为(1,2)和(4,5)，使用余弦相似度得出的结果是0.98，两者极为相似，但从评分上看X似乎不喜欢这2个内容，而Y比较喜欢，余弦相似度对数值的不敏感导致了结果的误差，需要修正这种不合理性，就出现了调整余弦相似度，即所有维度上的数值都减去一个均值，比如X和Y的评分均值都是3，那么调整后为(-2,-1)和(1,2)，再用余弦相似度计算，得到-0.8，相似度为负值并且差异不小，但显然更加符合现实。]]></content>
@@ -281,17 +292,6 @@
     <title><![CDATA[机器学习算法-相似度-JaccardSimilarityCoefficient(杰卡德相似系数)]]></title>
     <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-JaccardSimilarityCoefficient(%E6%9D%B0%E5%8D%A1%E5%BE%B7%E7%9B%B8%E4%BC%BC%E7%B3%BB%E6%95%B0)%2F</url>
     <content type="text"><![CDATA[0.概述两个集合A和B的交集元素在A，B的并集中所占的比例，称为两个集合的杰卡德相似系数，用符号J(A,B)表示。杰卡德相似系数是衡量两个集合的相似度一种指标。与杰卡德相似系数相反的概念是杰卡德距离(Jaccard distance)。杰卡德距离可用如下公式表示：1-J(A,B) 1.公式 2.Octave实例]]></content>
-      <categories>
-        <category>相似度算法</category>
-      </categories>
-      <tags>
-        <tag>机器学习</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title><![CDATA[机器学习算法-相似度-HammingDistance(汉明距离)]]></title>
-    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-HammingDistance(%E6%B1%89%E6%98%8E%E8%B7%9D%E7%A6%BB)%2F</url>
-    <content type="text"><![CDATA[0.概述两个等长字符串s1与s2之间的汉明距离定义为将其中一个变为另外一个所需要作的最小替换次数。例如字符串“1111”与“1001”之间的汉明距离为2。 1.应用场景信息编码（为了增强容错性，应使得编码间的最小汉明距离尽可能大）。 2.Octave实例]]></content>
       <categories>
         <category>相似度算法</category>
       </categories>
@@ -388,22 +388,22 @@
       </tags>
   </entry>
   <entry>
-    <title><![CDATA[机器学习算法-回归-梯度下降(GradientDescent)]]></title>
-    <url>%2F2016%2F11%2F23%2F2016-11-23-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E5%9B%9E%E5%BD%92-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D(GradientDescent)%2F</url>
-    <content type="text"><![CDATA[0.概述回归分析（regression analysis)是确定两种或两种以上变量间相互依赖的定量关系的一种统计分析方法。运用十分广泛，回归分析按照涉及的变量的多少，分为一元回归和多元回归分析；在线性回归中，按照因变量的多少，可分为简单回归分析和多重回归分析；按照自变量和因变量之间的关系类型，可分为线性回归分析和非线性回归分析。如果在回归分析中，只包括一个自变量和一个因变量，且二者的关系可用一条直线近似表示，这种回归分析称为一元线性回归分析。如果回归分析中包括两个或两个以上的自变量，且自变量之间存在线性相关，则称为多元线性回归分析。 在统计学中，线性回归(Linear Regression)是利用称为线性回归方程的最小平方函数对一个或多个自变量和因变量之间关系进行建模的一种回归分析。这种函数是一个或多个称为回归系数的模型参数的线性组合。只有一个自变量的情况称为简单回归,大于一个自变量情况的叫做多元回归。线性回归的主要问题是参数估计。 1.单参数-LinearRegression(线性回归)Hypothesis Function(假设函数): Cost Function(代价函数): Gradient Descent(梯度下降算法): 重复执行，直至收敛 Gradient Descent for Linear Regression(针对线性回归的梯度下降算法): 2.多参数-LinearRegression(线性回归)Hypothesis Function(假设函数): 向量化表示: 多训练集下： 对应的假设函数: Cost Function(代价函数): Gradient Descent for Multiple Linear Regression(针对多参数线性回归的梯度下降算法): Normal Equation(正规方程): 正规方程是从最小二乘法(矩阵形式)推导过来的，其本质是对代价函数求导，让导数等于0即可求极值，得到最优参数。 3.参数估计算法概述参数估计是指在已知系统模型结构时，用系统的输入和输出数据计算系统模型参数的过程。18世纪末德国数学家C.F.高斯首先提出参数估计的方法，他用最小二乘法计算天体运行的轨道。20世纪60年代，随着电子计算机的普及，参数估计有了飞速的发展。参数估计有多种方法，有矩估计、极大似然法、一致最小方差无偏估计、最小风险估计、同变估计、最小二乘法、贝叶斯估计、极大验后法、最小风险法和极小化极大熵法等。最基本的方法是最小二乘法和极大似然法。 最小二乘法的目标：求误差的最小平方和，对应有两种：线性和非线性。线性最小二乘的解是closed-form即，而非线性最小二乘没有closed-form，通常用迭代法求解。 迭代法，即在每一步update未知量逐渐逼近解，可以用于各种各样的问题（包括最小二乘），比如求的不是误差的最小平方和而是最小立方和。梯度下降是迭代法的一种，可以用于求解最小二乘问题（线性和非线性都可以）。高斯-牛顿法是另一种经常用于求解非线性最小二乘的迭代法（一定程度上可视为标准非线性最小二乘求解方法）。 还有一种叫做Levenberg-Marquardt的迭代法用于求解非线性最小二乘问题，就结合了梯度下降和高斯-牛顿法。]]></content>
+    <title><![CDATA[机器学习算法-分类-LogisticRegression(逻辑回归)]]></title>
+    <url>%2F2016%2F11%2F23%2F2016-11-23-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E5%88%86%E7%B1%BB-LogisticRegression(%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92)%2F</url>
+    <content type="text"><![CDATA[0.概述监督学习问题分为“回归”(regression)和“分类”(classification)问题。LinearRegression(线性回归)属于”回归”问题，而LogisticRegression(逻辑回归)属于”分类”问题。 1.LogisticRegression(逻辑回归)现在我们正在从回归问题切换到分类问题。不要被“逻辑回归”的名字混淆，它被命名为历史原因的方法，实际上是一种分类问题的方法，而不是回归问题。 Sigmoid Function(S函数): 我们的假设应该满足： 逻辑回归的假设函数： 针对分类问题，当假设函数预测的值达到一定概率后就判定为指定类别，预测值为: Decision Boundary(决策边界): 决策边界控制分类的界限，当预测函数值大于0.5就分类为1，当预测函数的值小于0.5就分类为0。针对S函数，当S函数中的X大于0是S函数就结果就大于0.5，相反则小于0.5。0.5就是决策边界，改变这个边界将影响到分类的结果。 当边界为0.5时，在逻辑函数里面就是假设函数为0的情况。 Cost Function(代价函数): 对数函数模型: 代价函数分析: 精简版代价函数: 向量化: Gradient Descent(梯度下降): 多分类:One-vs-all 我们先是选择一类，然后将所有的其它分到一个单一的二类。我们这样做是反复的，对每一种情况下应用二元逻辑回归，然后使用返回的最高值作为我们的预测的假设 2.Regularization(正则化)正则化是设计来解决过度拟合的问题。 正则化线性回归-梯度下降 正则化逻辑回归-代价函数 正则化逻辑回归-梯度下降 3.广义线性模型逻辑回归与多重线性回归实际上有很多相同之处，最大的区别就在于它们的因变量不同，其他的基本都差不多。正是因为如此，这两种回归可以归于同一个家族，即广义线性模型（generalizedlinear model）。 这一家族中的模型形式基本上都差不多，不同的就是因变量不同。 1.如果是连续的，就是多重线性回归； 2.如果是二项分布，就是Logistic回归； 3.如果是Poisson分布，就是Poisson回归； 4.如果是负二项分布，就是负二项回归。 Logistic回归的因变量可以是二分类的，也可以是多分类的，但是二分类的更为常用，也更加容易解释。所以实际中最常用的就是二分类的Logistic回归。 Logistic回归的主要用途： 寻找危险因素：寻找某一疾病的危险因素等； 预测：根据模型，预测在不同的自变量情况下，发生某病或某种情况的概率有多大； 判别：实际上跟预测有些类似，也是根据模型，判断某人属于某病或属于某种情况的概率有多大，也就是看一下这个人有多大的可能性是属于某病。 Logistic回归主要在流行病学中应用较多，比较常用的情形是探索某疾病的危险因素，根据危险因素预测某疾病发生的概率，等等。例如，想探讨胃癌发生的危险因素，可以选择两组人群，一组是胃癌组，一组是非胃癌组，两组人群肯定有不同的体征和生活方式等。这里的因变量就是是否胃癌，即“是”或“否”，自变量就可以包括很多了，例如年龄、性别、饮食习惯、幽门螺杆菌感染等。自变量既可以是连续的，也可以是分类的。]]></content>
       <categories>
-        <category>回归算法</category>
+        <category>分类算法</category>
       </categories>
       <tags>
         <tag>机器学习</tag>
       </tags>
   </entry>
   <entry>
-    <title><![CDATA[机器学习算法-分类-LogisticRegression(逻辑回归)]]></title>
-    <url>%2F2016%2F11%2F23%2F2016-11-23-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E5%88%86%E7%B1%BB-LogisticRegression(%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92)%2F</url>
-    <content type="text"><![CDATA[0.概述监督学习问题分为“回归”(regression)和“分类”(classification)问题。LinearRegression(线性回归)属于”回归”问题，而LogisticRegression(逻辑回归)属于”分类”问题。 1.LogisticRegression(逻辑回归)现在我们正在从回归问题切换到分类问题。不要被“逻辑回归”的名字混淆，它被命名为历史原因的方法，实际上是一种分类问题的方法，而不是回归问题。 Sigmoid Function(S函数): 我们的假设应该满足： 逻辑回归的假设函数： 针对分类问题，当假设函数预测的值达到一定概率后就判定为指定类别，预测值为: Decision Boundary(决策边界): 决策边界控制分类的界限，当预测函数值大于0.5就分类为1，当预测函数的值小于0.5就分类为0。针对S函数，当S函数中的X大于0是S函数就结果就大于0.5，相反则小于0.5。0.5就是决策边界，改变这个边界将影响到分类的结果。 当边界为0.5时，在逻辑函数里面就是假设函数为0的情况。 Cost Function(代价函数): 对数函数模型: 代价函数分析: 精简版代价函数: 向量化: Gradient Descent(梯度下降): 多分类:One-vs-all 我们先是选择一类，然后将所有的其它分到一个单一的二类。我们这样做是反复的，对每一种情况下应用二元逻辑回归，然后使用返回的最高值作为我们的预测的假设 2.Regularization(正则化)正则化是设计来解决过度拟合的问题。 正则化线性回归-梯度下降 正则化逻辑回归-代价函数 正则化逻辑回归-梯度下降 3.广义线性模型逻辑回归与多重线性回归实际上有很多相同之处，最大的区别就在于它们的因变量不同，其他的基本都差不多。正是因为如此，这两种回归可以归于同一个家族，即广义线性模型（generalizedlinear model）。 这一家族中的模型形式基本上都差不多，不同的就是因变量不同。 1.如果是连续的，就是多重线性回归； 2.如果是二项分布，就是Logistic回归； 3.如果是Poisson分布，就是Poisson回归； 4.如果是负二项分布，就是负二项回归。 Logistic回归的因变量可以是二分类的，也可以是多分类的，但是二分类的更为常用，也更加容易解释。所以实际中最常用的就是二分类的Logistic回归。 Logistic回归的主要用途： 寻找危险因素：寻找某一疾病的危险因素等； 预测：根据模型，预测在不同的自变量情况下，发生某病或某种情况的概率有多大； 判别：实际上跟预测有些类似，也是根据模型，判断某人属于某病或属于某种情况的概率有多大，也就是看一下这个人有多大的可能性是属于某病。 Logistic回归主要在流行病学中应用较多，比较常用的情形是探索某疾病的危险因素，根据危险因素预测某疾病发生的概率，等等。例如，想探讨胃癌发生的危险因素，可以选择两组人群，一组是胃癌组，一组是非胃癌组，两组人群肯定有不同的体征和生活方式等。这里的因变量就是是否胃癌，即“是”或“否”，自变量就可以包括很多了，例如年龄、性别、饮食习惯、幽门螺杆菌感染等。自变量既可以是连续的，也可以是分类的。]]></content>
+    <title><![CDATA[机器学习算法-回归-梯度下降(GradientDescent)]]></title>
+    <url>%2F2016%2F11%2F23%2F2016-11-23-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E5%9B%9E%E5%BD%92-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D(GradientDescent)%2F</url>
+    <content type="text"><![CDATA[0.概述回归分析（regression analysis)是确定两种或两种以上变量间相互依赖的定量关系的一种统计分析方法。运用十分广泛，回归分析按照涉及的变量的多少，分为一元回归和多元回归分析；在线性回归中，按照因变量的多少，可分为简单回归分析和多重回归分析；按照自变量和因变量之间的关系类型，可分为线性回归分析和非线性回归分析。如果在回归分析中，只包括一个自变量和一个因变量，且二者的关系可用一条直线近似表示，这种回归分析称为一元线性回归分析。如果回归分析中包括两个或两个以上的自变量，且自变量之间存在线性相关，则称为多元线性回归分析。 在统计学中，线性回归(Linear Regression)是利用称为线性回归方程的最小平方函数对一个或多个自变量和因变量之间关系进行建模的一种回归分析。这种函数是一个或多个称为回归系数的模型参数的线性组合。只有一个自变量的情况称为简单回归,大于一个自变量情况的叫做多元回归。线性回归的主要问题是参数估计。 1.单参数-LinearRegression(线性回归)Hypothesis Function(假设函数): Cost Function(代价函数): Gradient Descent(梯度下降算法): 重复执行，直至收敛 Gradient Descent for Linear Regression(针对线性回归的梯度下降算法): 2.多参数-LinearRegression(线性回归)Hypothesis Function(假设函数): 向量化表示: 多训练集下： 对应的假设函数: Cost Function(代价函数): Gradient Descent for Multiple Linear Regression(针对多参数线性回归的梯度下降算法): Normal Equation(正规方程): 正规方程是从最小二乘法(矩阵形式)推导过来的，其本质是对代价函数求导，让导数等于0即可求极值，得到最优参数。 3.参数估计算法概述参数估计是指在已知系统模型结构时，用系统的输入和输出数据计算系统模型参数的过程。18世纪末德国数学家C.F.高斯首先提出参数估计的方法，他用最小二乘法计算天体运行的轨道。20世纪60年代，随着电子计算机的普及，参数估计有了飞速的发展。参数估计有多种方法，有矩估计、极大似然法、一致最小方差无偏估计、最小风险估计、同变估计、最小二乘法、贝叶斯估计、极大验后法、最小风险法和极小化极大熵法等。最基本的方法是最小二乘法和极大似然法。 最小二乘法的目标：求误差的最小平方和，对应有两种：线性和非线性。线性最小二乘的解是closed-form即，而非线性最小二乘没有closed-form，通常用迭代法求解。 迭代法，即在每一步update未知量逐渐逼近解，可以用于各种各样的问题（包括最小二乘），比如求的不是误差的最小平方和而是最小立方和。梯度下降是迭代法的一种，可以用于求解最小二乘问题（线性和非线性都可以）。高斯-牛顿法是另一种经常用于求解非线性最小二乘的迭代法（一定程度上可视为标准非线性最小二乘求解方法）。 还有一种叫做Levenberg-Marquardt的迭代法用于求解非线性最小二乘问题，就结合了梯度下降和高斯-牛顿法。]]></content>
       <categories>
-        <category>分类算法</category>
+        <category>回归算法</category>
       </categories>
       <tags>
         <tag>机器学习</tag>
@@ -465,17 +465,6 @@
       </tags>
   </entry>
   <entry>
-    <title><![CDATA[Docker常用指令备忘录]]></title>
-    <url>%2F2016%2F07%2F22%2F2016-07-22-Docker%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4%E5%A4%87%E5%BF%98%E5%BD%95%2F</url>
-    <content type="text"><![CDATA[0.概述Docker常用的指令，方便以后查找 1.查看镜像docker images 2.拉取镜像docker pull &lt;镜像名:tag&gt; #从官网拉取镜像 docker search &lt;镜像名&gt; #搜索在线可用镜像名 3.查看容器docker ps #查看正在运行的容器 docker ps -l #查看最后退出的容器的ID docker ps -a #查看所有的容器，包括退出的。 docker start [PID] //启动停止的容器 docker stop [PID] //停止运行的容器 docker kill [PID] //杀死容器 4.设置后台运行容器docker run -d -i –name zkServer -p 2181:2181 index.tenxcloud.com/sdvdxl/zookeeper -d :后台运行 –name：设置容器名称 -p：设置端口对应 -i:保持输入流开放即使没有附加输入流 -t=false:分配一个伪造的终端输入 5.删除容器与删除镜像docker rm$(docker ps -a -q) #删除所有容器 docker rm &lt;容器名or ID&gt; #删除单个容器 docker rmi #删除单个镜像 docker rmi$(docker images | grep none | awk ‘{print $3}’ | sort -r) 6.进入容器docker attach [ID或名称] 可以attach到一个已经运行的容器的stdin，然后进行命令执行的动作。但是需要注意的是，如果从这个stdin中exit，会导致容器的停止。 docker exec -it [ID或名称] /bin/sh 只使用-i时，由于没有分配伪终端，看起来像pipe执行一样。但是执行结果、命令返回值都可以正确获取。 只使用-t参数，则可以看到一个console窗口，但是执行命令会发现由于没有获得stdin的输出，无法看到命令执行情况。 使用-it时，则和我们平常操作console界面类似。而且也不会像attach方式因为退出，导致整个容器退出。这种方式可以替代ssh或者nsenter、nsinit方式，在容器内进行操作。 7.常见错误端口映射配置前需要确保iptables服务开启 若遇到以下错误:COMMAND_FAILED: ‘/sbin/iptables -t nat -A DOCKER -p tcp -d 0/0 –dport 8111 -j DNAT –to-destination 172.17.0.6:8111 ! -i docker0’ failed: iptables: No chain/target/match by that name. 执行以下操作: service docker stop iptables -t nat -F ifconfig docker0 down brctl delbr docker0 service docker start 8.Dockerfile构建命令从fesaDockerFile中构建容器 docker build -t fesa:latest - &lt; fesaDockerFile]]></content>
-      <categories>
-        <category>Docker指令</category>
-      </categories>
-      <tags>
-        <tag>备忘录</tag>
-      </tags>
-  </entry>
-  <entry>
     <title><![CDATA[推荐场景1-推荐用户已购买的内容]]></title>
     <url>%2F2016%2F07%2F22%2F2016-07-22-%E6%8E%A8%E8%8D%90%E5%9C%BA%E6%99%AF1-%E6%8E%A8%E8%8D%90%E7%94%A8%E6%88%B7%E5%B7%B2%E8%B4%AD%E4%B9%B0%E7%9A%84%E5%86%85%E5%AE%B9%2F</url>
     <content type="text"><![CDATA[0.概述推荐场景中，存在给用户推荐自己已经购买的商品，其实用户对自己购买过的商品基本上不会再去买了，没有挖掘出用户的下一步诉求，就不能引导用户进行新的尝试。用户买过手机后我们可以在推荐列表中去放入用户下一步可能要买的商品，比如说：耳机，充电器，其他品牌的手机。不要把用户买过的商品大量的放入推荐列表中，转换效果不好，用户点击欲望也不会高。 1.购物场景用户买了手机套，给用户的推荐结果是手机套，手机套，手机套。。。其实我们应该让用户看到其他和手机套的相关的内容，而不是一味的去推荐已经购买的商品。推荐系统应该要自己猜测到用户其实是拥有一部什么样牌子的手机，用户的年龄是多少？用户的购物能力有多高？可以给用户推荐一些其他领域的商品。]]></content>
@@ -484,6 +473,17 @@
       </categories>
       <tags>
         <tag>推荐系统</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Docker常用指令备忘录]]></title>
+    <url>%2F2016%2F07%2F22%2F2016-07-22-Docker%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4%E5%A4%87%E5%BF%98%E5%BD%95%2F</url>
+    <content type="text"><![CDATA[0.概述Docker常用的指令，方便以后查找 1.查看镜像docker images 2.拉取镜像docker pull &lt;镜像名:tag&gt; #从官网拉取镜像 docker search &lt;镜像名&gt; #搜索在线可用镜像名 3.查看容器docker ps #查看正在运行的容器 docker ps -l #查看最后退出的容器的ID docker ps -a #查看所有的容器，包括退出的。 docker start [PID] //启动停止的容器 docker stop [PID] //停止运行的容器 docker kill [PID] //杀死容器 4.设置后台运行容器docker run -d -i –name zkServer -p 2181:2181 index.tenxcloud.com/sdvdxl/zookeeper -d :后台运行 –name：设置容器名称 -p：设置端口对应 -i:保持输入流开放即使没有附加输入流 -t=false:分配一个伪造的终端输入 5.删除容器与删除镜像docker rm$(docker ps -a -q) #删除所有容器 docker rm &lt;容器名or ID&gt; #删除单个容器 docker rmi #删除单个镜像 docker rmi$(docker images | grep none | awk ‘{print $3}’ | sort -r) 6.进入容器docker attach [ID或名称] 可以attach到一个已经运行的容器的stdin，然后进行命令执行的动作。但是需要注意的是，如果从这个stdin中exit，会导致容器的停止。 docker exec -it [ID或名称] /bin/sh 只使用-i时，由于没有分配伪终端，看起来像pipe执行一样。但是执行结果、命令返回值都可以正确获取。 只使用-t参数，则可以看到一个console窗口，但是执行命令会发现由于没有获得stdin的输出，无法看到命令执行情况。 使用-it时，则和我们平常操作console界面类似。而且也不会像attach方式因为退出，导致整个容器退出。这种方式可以替代ssh或者nsenter、nsinit方式，在容器内进行操作。 7.常见错误端口映射配置前需要确保iptables服务开启 若遇到以下错误:COMMAND_FAILED: ‘/sbin/iptables -t nat -A DOCKER -p tcp -d 0/0 –dport 8111 -j DNAT –to-destination 172.17.0.6:8111 ! -i docker0’ failed: iptables: No chain/target/match by that name. 执行以下操作: service docker stop iptables -t nat -F ifconfig docker0 down brctl delbr docker0 service docker start 8.Dockerfile构建命令从fesaDockerFile中构建容器 docker build -t fesa:latest - &lt; fesaDockerFile]]></content>
+      <categories>
+        <category>Docker指令</category>
+      </categories>
+      <tags>
+        <tag>备忘录</tag>
       </tags>
   </entry>
   <entry>
