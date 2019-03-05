@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[MySQL-Galera集群搭建手册]]></title>
+    <url>%2F2019%2F03%2F05%2F2019-03-05-MySQL-Galera%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%89%8B%E5%86%8C%2F</url>
+    <content type="text"><![CDATA[1.安装首先配置yum源。在/etc/yum.repos.d/ 的目录下编辑gelare.repo文件。 1234567891011[galera]name = Galerabaseurl = http://releases.galeracluster.com/galera-3/DIST/RELEASE/ARCHgpgkey = http://releases.galeracluster.com/GPG-KEY-galeracluster.comgpgcheck = 1[mysql-wsrep]name = MySQL-wsrepbaseurl = http://releases.galeracluster.com/mysql-wsrep-VERSION/DIST/RELEASE/ARCHgpgkey = http://releases.galeracluster.com/GPG-KEY-galeracluster.comgpgcheck = 1 注意需要替换掉相应的参数：VERSION是mysql-wsrep的版本，如5.7；DIST是操作系统，如centos；RELEASE是操作系统版本，如6；ARCH是系统架构，如x86_64；视自己的环境不同作出相应的更改。源配置好之后，就可以安装了，很简单，只需执行以下命令： 1yum install galera-3 mysql-wsrep-5.7 2.初始化1.使用命令：mysqld –initialize 初始化mysql2.查看默认密码: grep ‘temporary password’ /var/log/mysqld.log3.更改权限：chown -R mysql:mysql /var/lib/mysql4.启动mysql服务:service mysqld start 进入mysql：mysql -uroot -p 执行修改密码：alter user user() identified by “新密码”;5.开放远程登录授权 grant all privileges on . to ‘用户名‘@’%’ identified by ‘登录密码’ with grant option; flush privileges;6.去掉Postfix,这个可能跟MySQL配置有冲突: yum remove postfix -y7.关闭防火墙(生产上可开放端口)： setenforce 0 &amp;&amp; systemctl stop firewalld8.关闭mysql服务： service mysqld stop （注意mysql5.7是mysqld） 3.配置文件1) 修改my.cnf 1vim /etc/my.cnf，在末尾增加：!includedir /etc/my.cnf.d/ 2) 修改wsrep.cnf 1vi /etc/my.cnf.d/wsrep.cnf 1234567891011121314151617181920212223242526272829[mysqld]server-id=133 #每个节点一个唯一的IDdefault-storage-engine=innodbinnodb_autoinc_lock_mode=2innodb_locks_unsafe_for_binlog=1query_cache_size=0query_cache_type=0bind-address=0.0.0.0wsrep_provider=/usr/lib64/galera-3/libgalera_smm.sowsrep_provider_options=&apos;gmcast.listen_addr=tcp://192.168.88.133:4567&apos; #修改为本节点地址wsrep_cluster_name=&quot;my_wsrep_cluster&quot; #集群名称，所有节点配置为同一个wsrep_cluster_address=gcomm://192.168.88.133:4567,192.168.88.128:4567 #节点中所有节点地址wsrep_node_name=node133 #node名称，每个节点名称唯一wsrep_node_address=&apos;192.168.88.133&apos; #本节点地址wsrep_node_incoming_address=&apos;192.168.88.133&apos; #本节点地址wsrep_slave_threads=1wsrep_certify_nonPK=1wsrep_max_ws_rows=131072wsrep_max_ws_size=1073741824wsrep_debug=0wsrep_convert_LOCK_to_trx=0wsrep_retry_autocommit=1wsrep_auto_increment_control=1wsrep_drupal_282555_workaround=0wsrep_causal_reads=0wsrep_notify_cmd=wsrep_sst_method=rsyncwsrep_sst_auth=root:2464323 #数据量库用户名密码wsrep_sst_donor=&apos;node133,node128&apos; #节点中所有节点的node名称 4.第四步：启动任意选取一个节点，执行： 1/usr/bin/mysqld_bootstrap 然后登陆到mysql ，执行： 1show status like "wsrep_cluster_size"; 不出意外的话，就会显示1，表明这个集群内现在只有一个节点. 其他的节点依次执行： 1service mysqld start 然后再查看wsrep_cluster_size数量。 5.集群重启：在集群停止之后重启时，先在每个几点上使用mysqld_safe –wsrep-recover查看节点的Recovered position的值，选择值最大的一个作为第一个几点启动，如果启动失败，则在将作为第一个启动节点的服务器上编辑grastate.dat文件（可以使用find命令查找位置），将safe_to_bootstrap的值设为1，使用/usr/bin/mysqld_bootstrap命令启动该节点，其他节点启动与以前一致。 6.错误排查查看mysql日志位置： 1show variables like &apos;log_error&apos;;]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[密码学入门]]></title>
     <url>%2F2019%2F01%2F22%2F2019-01-22-%E5%AF%86%E7%A0%81%E5%AD%A6%E5%85%A5%E9%97%A8%2F</url>
     <content type="text"><![CDATA[1. 前言在如今的信息安全领域，有各种各样的加密算法凝聚了计算机科学家门的智慧。从宏观上来看，这些加密算法可以归结为三大类：哈希算法、对称加密算法、非对称加密算法。 2.书籍 3. 文章漫画：什么是加密算法？ https://mp.weixin.qq.com/s/mszEors5SK2rThqXF79PuQ]]></content>
@@ -289,17 +300,6 @@
       </tags>
   </entry>
   <entry>
-    <title><![CDATA[机器学习算法-相似度-HammingDistance(汉明距离)]]></title>
-    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-HammingDistance(%E6%B1%89%E6%98%8E%E8%B7%9D%E7%A6%BB)%2F</url>
-    <content type="text"><![CDATA[0.概述两个等长字符串s1与s2之间的汉明距离定义为将其中一个变为另外一个所需要作的最小替换次数。例如字符串“1111”与“1001”之间的汉明距离为2。 1.应用场景信息编码（为了增强容错性，应使得编码间的最小汉明距离尽可能大）。 2.Octave实例]]></content>
-      <categories>
-        <category>相似度算法</category>
-      </categories>
-      <tags>
-        <tag>机器学习</tag>
-      </tags>
-  </entry>
-  <entry>
     <title><![CDATA[机器学习算法-相似度-CosineSimilarity(余弦相似度)]]></title>
     <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-CosineSimilarity(%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E5%BA%A6)%2F</url>
     <content type="text"><![CDATA[0.概述余弦相似度用向量空间中两个向量夹角的余弦值作为衡量两个个体间差异的大小。相比距离度量，余弦相似度更加注重两个向量在方向上的差异，而非距离或长度上。 1.余弦相似度描述 与欧几里德距离类似，基于余弦相似度的计算方法也是把用户的喜好作为n-维坐标系中的一个点，通过连接这个点与坐标系的原点构成一条直线（向量），两个用户之间的相似度值就是两条直线（向量）间夹角的余弦值。因为连接代表用户评分的点与原点的直线都会相交于原点，夹角越小代表两个用户越相似，夹角越大代表两个用户的相似度越小。同时在三角系数中，角的余弦值是在[-1, 1]之间的，0度角的余弦值是1，180角的余弦值是-1。 2.欧氏距离和余弦相似度的区别 从图上可以看出距离度量衡量的是空间各点间的绝对距离，跟各个点所在的位置坐标（即个体特征维度的数值）直接相关；而余弦相似度衡量的是空间向量的夹角，更加的是体现在方向上的差异，而不是位置。如果保持A点的位置不变，B点朝原方向远离坐标轴原点，那么这个时候余弦相似度cosθ是保持不变的，因为夹角不变，而A、B两点的距离显然在发生改变，这就是欧氏距离和余弦相似度的不同之处。 根据欧氏距离和余弦相似度各自的计算方式和衡量特征，分别适用于不同的数据分析模型：欧氏距离能够体现个体数值特征的绝对差异，所以更多的用于需要从维度的数值大小中体现差异的分析，如使用用户行为指标分析用户价值的相似度或差异；而余弦相似度更多的是从方向上区分差异，而对绝对的数值不敏感，更多的用于使用用户对内容评分来区分用户兴趣的相似度和差异，同时修正了用户间可能存在的度量标准不统一的问题（因为余弦相似度对绝对数值不敏感）。 3.调整余弦相似度——AdjustedCosineSimilarity在余弦相似度的介绍中说到：余弦相似度更多的是从方向上区分差异，而对绝对的数值不敏感。因此没法衡量每个维数值的差异，会导致这样一个情况：比如用户对内容评分，5分制，X和Y两个用户对两个内容的评分分别为(1,2)和(4,5)，使用余弦相似度得出的结果是0.98，两者极为相似，但从评分上看X似乎不喜欢这2个内容，而Y比较喜欢，余弦相似度对数值的不敏感导致了结果的误差，需要修正这种不合理性，就出现了调整余弦相似度，即所有维度上的数值都减去一个均值，比如X和Y的评分均值都是3，那么调整后为(-2,-1)和(1,2)，再用余弦相似度计算，得到-0.8，相似度为负值并且差异不小，但显然更加符合现实。]]></content>
@@ -311,9 +311,9 @@
       </tags>
   </entry>
   <entry>
-    <title><![CDATA[机器学习算法-相似度-JaccardSimilarityCoefficient(杰卡德相似系数)]]></title>
-    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-JaccardSimilarityCoefficient(%E6%9D%B0%E5%8D%A1%E5%BE%B7%E7%9B%B8%E4%BC%BC%E7%B3%BB%E6%95%B0)%2F</url>
-    <content type="text"><![CDATA[0.概述两个集合A和B的交集元素在A，B的并集中所占的比例，称为两个集合的杰卡德相似系数，用符号J(A,B)表示。杰卡德相似系数是衡量两个集合的相似度一种指标。与杰卡德相似系数相反的概念是杰卡德距离(Jaccard distance)。杰卡德距离可用如下公式表示：1-J(A,B) 1.公式 2.Octave实例]]></content>
+    <title><![CDATA[机器学习算法-相似度-HammingDistance(汉明距离)]]></title>
+    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-HammingDistance(%E6%B1%89%E6%98%8E%E8%B7%9D%E7%A6%BB)%2F</url>
+    <content type="text"><![CDATA[0.概述两个等长字符串s1与s2之间的汉明距离定义为将其中一个变为另外一个所需要作的最小替换次数。例如字符串“1111”与“1001”之间的汉明距离为2。 1.应用场景信息编码（为了增强容错性，应使得编码间的最小汉明距离尽可能大）。 2.Octave实例]]></content>
       <categories>
         <category>相似度算法</category>
       </categories>
@@ -322,9 +322,9 @@
       </tags>
   </entry>
   <entry>
-    <title><![CDATA[机器学习算法-相似度-PearsonCorrelationSimilarity(皮尔森相似度)]]></title>
-    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-PearsonCorrelationSimilarity(%E7%9A%AE%E5%B0%94%E6%A3%AE%E7%9B%B8%E4%BC%BC%E5%BA%A6)%2F</url>
-    <content type="text"><![CDATA[0.概述皮尔森相关系数反应了两个变量之间的线性相关程度，它的取值在[-1, 1]之间。当两个变量的线性关系增强时，相关系数趋于1或-1；当一个变量增大，另一个变量也增大时，表明它们之间是正相关的，相关系数大于0；如果一个变量增大，另一个变量却减小，表明它们之间是负相关的，相关系数小于0；如果相关系数等于0，表明它们之间不存在线性相关关系。 1.皮尔森相似度描述用数学公式表示，皮尔森相关系数等于两个变量的协方差除于两个变量的标准差。 2.协方差(Covariance)在概率论和统计学中用于衡量两个变量的总体误差。如果两个变量的变化趋于一致，也就是说如果其中一个大于自身的期望值，另一个也大于自身的期望值，那么两个变量之间的协方差就是正值；如果两个变量的变化趋势相反，则协方差为负值。 其中u表示X的期望E(X), v表示Y的期望E(Y) 3.标准差(Standard Deviation)标准差是方差的平方根 4.方差(Variance)在概率论和统计学中，一个随机变量的方差表述的是它的离散程度，也就是该变量与期望值的距离。即方差等于误差的平方和的期望 5.缺点基于皮尔森相关系数的相似度有两个缺点： (1) 没有考虑（take into account）用户间重叠的评分项数量对相似度的影响； (2) 如果两个用户之间只有一个共同的评分项，相似度也不能被计算 上表中，行表示用户（1～5）对项目（101～103）的一些评分值。直观来看，User1和User5用3个共同的评分项，并且给出的评分走差也不大，按理他们之间的相似度应该比User1和User4之间的相似度要高，可是User1和User4有一个更高的相似度1。 同样的场景在现实生活中也经常发生，比如两个用户共同观看了200部电影，虽然不一定给出相同或完全相近的评分，他们之间的相似度也应该比另一位只观看了2部相同电影的相似度高吧！但事实并不如此，如果对这两部电影，两个用户给出的相似度相同或很相近，通过皮尔森相关性计算出的相似度会明显大于观看了相同的200部电影的用户之间的相似度。 Mahout对基于皮尔森相关系数的相似度给出了实现，它依赖一个DataModel作为输入。 同时，Mahout还针对缺点(1)进行了优化，只需要在构造PearsonCorrelationSimilarity时多传入一个Weighting.WEIGHTED参数，就能使有更多相同评分项目的用户之间的相似度更趋近于1或-1。 UserSimilarity similarity1 = new PearsonCorrelationSimilarity(model); double value1 = similarity1.userSimilarity(1, 5); UserSimilarity similarity2 = new PearsonCorrelationSimilarity(model, Weighting.WEIGHTED); double value2 = similarity2.userSimilarity(1, 5); 结果： Similarity of User1 and User5: 0.944911182523068 Similarity of User1 and User5 with weighting: 0.9655694890769175]]></content>
+    <title><![CDATA[机器学习算法-相似度-JaccardSimilarityCoefficient(杰卡德相似系数)]]></title>
+    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-JaccardSimilarityCoefficient(%E6%9D%B0%E5%8D%A1%E5%BE%B7%E7%9B%B8%E4%BC%BC%E7%B3%BB%E6%95%B0)%2F</url>
+    <content type="text"><![CDATA[0.概述两个集合A和B的交集元素在A，B的并集中所占的比例，称为两个集合的杰卡德相似系数，用符号J(A,B)表示。杰卡德相似系数是衡量两个集合的相似度一种指标。与杰卡德相似系数相反的概念是杰卡德距离(Jaccard distance)。杰卡德距离可用如下公式表示：1-J(A,B) 1.公式 2.Octave实例]]></content>
       <categories>
         <category>相似度算法</category>
       </categories>
@@ -347,6 +347,17 @@
     <title><![CDATA[机器学习算法-相似度-SpearmanCorrelationSimilarity(皮尔斯曼相关系数相似度)]]></title>
     <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-SpearmanCorrelationSimilarity(%E7%9A%AE%E5%B0%94%E6%96%AF%E6%9B%BC%E7%9B%B8%E5%85%B3%E7%B3%BB%E6%95%B0%E7%9B%B8%E4%BC%BC%E5%BA%A6)%2F</url>
     <content type="text"><![CDATA[0.概述皮尔斯曼相关度的计算舍弃了一些重要信息，即真实的评分值。但它保留了用户喜好值的本质特性——排序（ordering），它是建立在排序（或等级，Rank）的基础上计算的。 1.皮尔斯曼相关性描述皮尔斯曼相关性可以理解为是排列后（Rank）用户喜好值之间的Pearson相关度。《Mahout in Action》中有这样的解释：假设对于每个用户，我们找到他最不喜欢的物品，重写他的评分值为“1”；然后找到下一个最不喜欢的物品，重写评分值为“2”，以此类推。然后我们对这些转换后的值求Pearson相关系数，这就是Spearman相关系数。 2.举例User1～5对Item101～103的喜好（评分）值，通过斯皮尔曼相关系数计算出的相似度为： 我们发现，计算出来的相似度值要么是1，要么是-1，因为这依赖于用户的喜好值和User1的喜好值是否趋于“一致变化”还是呈“相反趋势变化”。 Mahout对斯皮尔曼相关系数给出了实现，具体可参考SpearmanCorrelationSimilarity，它的执行效率不是非常高，因为斯皮尔曼相关性的计算需要花时间计算并存储喜好值的一个排序（Ranks），具体时间取决于数据的数量级大小。正因为这样，斯皮尔曼相关系数一般用于学术研究或者是小规模的计算。 代码： 考虑到Spearman Correlation的效率，可以把SpearmanCorrelationSimilarity包装一层Cache，具体做法为： UserSimilarity similarity2 = new CachingUserSimilarity(new SpearmanCorrelationSimilarity(model), model); 这样，每次计算的结果会直接放入Cache，下一次计算的时候可以立即得到结果，而不是重新再计算一次。]]></content>
+      <categories>
+        <category>相似度算法</category>
+      </categories>
+      <tags>
+        <tag>机器学习</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[机器学习算法-相似度-PearsonCorrelationSimilarity(皮尔森相似度)]]></title>
+    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-PearsonCorrelationSimilarity(%E7%9A%AE%E5%B0%94%E6%A3%AE%E7%9B%B8%E4%BC%BC%E5%BA%A6)%2F</url>
+    <content type="text"><![CDATA[0.概述皮尔森相关系数反应了两个变量之间的线性相关程度，它的取值在[-1, 1]之间。当两个变量的线性关系增强时，相关系数趋于1或-1；当一个变量增大，另一个变量也增大时，表明它们之间是正相关的，相关系数大于0；如果一个变量增大，另一个变量却减小，表明它们之间是负相关的，相关系数小于0；如果相关系数等于0，表明它们之间不存在线性相关关系。 1.皮尔森相似度描述用数学公式表示，皮尔森相关系数等于两个变量的协方差除于两个变量的标准差。 2.协方差(Covariance)在概率论和统计学中用于衡量两个变量的总体误差。如果两个变量的变化趋于一致，也就是说如果其中一个大于自身的期望值，另一个也大于自身的期望值，那么两个变量之间的协方差就是正值；如果两个变量的变化趋势相反，则协方差为负值。 其中u表示X的期望E(X), v表示Y的期望E(Y) 3.标准差(Standard Deviation)标准差是方差的平方根 4.方差(Variance)在概率论和统计学中，一个随机变量的方差表述的是它的离散程度，也就是该变量与期望值的距离。即方差等于误差的平方和的期望 5.缺点基于皮尔森相关系数的相似度有两个缺点： (1) 没有考虑（take into account）用户间重叠的评分项数量对相似度的影响； (2) 如果两个用户之间只有一个共同的评分项，相似度也不能被计算 上表中，行表示用户（1～5）对项目（101～103）的一些评分值。直观来看，User1和User5用3个共同的评分项，并且给出的评分走差也不大，按理他们之间的相似度应该比User1和User4之间的相似度要高，可是User1和User4有一个更高的相似度1。 同样的场景在现实生活中也经常发生，比如两个用户共同观看了200部电影，虽然不一定给出相同或完全相近的评分，他们之间的相似度也应该比另一位只观看了2部相同电影的相似度高吧！但事实并不如此，如果对这两部电影，两个用户给出的相似度相同或很相近，通过皮尔森相关性计算出的相似度会明显大于观看了相同的200部电影的用户之间的相似度。 Mahout对基于皮尔森相关系数的相似度给出了实现，它依赖一个DataModel作为输入。 同时，Mahout还针对缺点(1)进行了优化，只需要在构造PearsonCorrelationSimilarity时多传入一个Weighting.WEIGHTED参数，就能使有更多相同评分项目的用户之间的相似度更趋近于1或-1。 UserSimilarity similarity1 = new PearsonCorrelationSimilarity(model); double value1 = similarity1.userSimilarity(1, 5); UserSimilarity similarity2 = new PearsonCorrelationSimilarity(model, Weighting.WEIGHTED); double value2 = similarity2.userSimilarity(1, 5); 结果： Similarity of User1 and User5: 0.944911182523068 Similarity of User1 and User5 with weighting: 0.9655694890769175]]></content>
       <categories>
         <category>相似度算法</category>
       </categories>
@@ -564,9 +575,20 @@
       </tags>
   </entry>
   <entry>
-    <title><![CDATA[JDK源码分析之IO类汇总]]></title>
-    <url>%2F2016%2F04%2F08%2F2016-04-08-JDK%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BIO%E7%B1%BB%E6%B1%87%E6%80%BB%2F</url>
-    <content type="text"><![CDATA[0.概述JDK中包含的IO类的梳理，对IO操作有一个全面的认识，在JDK中IO操作还有一个包NIO。都是对IO的操作，但是实现的原理还是不一样的。 1.类图]]></content>
+    <title><![CDATA[JDK源码分析之BIO类汇总]]></title>
+    <url>%2F2016%2F04%2F08%2F2016-04-08-JDK%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BBIO%E7%B1%BB%E6%B1%87%E6%80%BB%2F</url>
+    <content type="text"><![CDATA[0.概述JDK中包含的IO类的梳理，对IO操作有一个全面的认识，在JDK中IO操作还有一个包NIO。都是对IO的操作，但是实现的原理还是不一样的。 1.BIO类图 2.流的概念和作用流是一组有顺序的，有起点和终点的字节集合，是对数据传输的总称或抽象。即数据在两设备间的传输称为流，流的本质是数据传输，根据数据传输特性将流抽象为各种类，方便更直观的进行数据操作。 IO流的分类 根据处理数据类型的不同分为：字符流和字节流根据数据流向不同分为：输入流和输出流 2.1 字符流和字节流字符流的由来： 因为数据编码的不同，而有了对字符进行高效操作的流对象。本质其实就是基于字节流读取时，去查了指定的码表。字节流和字符流的区别：读写单位不同：字节流以字节（8bit）为单位，字符流以字符为单位，根据码表映射字符，一次可能读多个字节。处理对象不同：字节流能处理所有类型的数据（如图片、avi等），而字符流只能处理字符类型的数据。字节流：一次读入或读出是8位二进制。字符流：一次读入或读出是16位二进制。设备上的数据无论是图片或者视频，文字，它们都以二进制存储的。二进制的最终都是以一个8位为数据单元进行体现，所以计算机中的最小数据单元就是字节。意味着，字节流可以处理设备上的所有数据，所以字节流一样可以处理字符数据。 结论：只要是处理纯文本数据，就优先考虑使用字符流。 除此之外都使用字节流。 2.2 输入流和输出流输入流只能进行读操作，输出流只能进行写操作，程序中需要根据待传输数据的不同特性而使用不同的流。 3.字节流用法3.1 输入字节流 InputStreamInputStream 是所有的输入字节流的父类，它是一个抽象类。ByteArrayInputStream、StringBufferInputStream、FileInputStream 是三种基本的介质流，它们分别从Byte 数组、StringBuffer、和本地文件中读取数据。PipedInputStream 是从与其它线程共用的管道中读取数据，与Piped 相关的知识后续单独介绍。ObjectInputStream 和所有FilterInputStream 的子类都是装饰流（装饰器模式的主角）。 3.2 输出字节流 OutputStreamOutputStream 是所有的输出字节流的父类，它是一个抽象类。ByteArrayOutputStream、FileOutputStream 是两种基本的介质流，它们分别向Byte 数组、和本地文件中写入数据。PipedOutputStream 是向与其它线程共用的管道中写入数据。ObjectOutputStream 和所有FilterOutputStream 的子类都是装饰流。 总结：输入流：InputStream或者Reader：从文件中读到程序中；输出流：OutputStream或者Writer：从程序中输出到文件中； 4.节点流-处理流-转换流4.1 节点流直接与数据源相连，读入或读出。直接使用节点流，读写不方便，为了更快的读写文件，才有了处理流。 常用的节点流父 类 ：InputStream 、OutputStream、 Reader、 Writer文 件 ：FileInputStream 、 FileOutputStrean 、FileReader 、FileWriter 文件进行处理的节点流数 组 ：ByteArrayInputStream、 ByteArrayOutputStream、 CharArrayReader 、CharArrayWriter对数组进行处理的节点流（对应的不再是文件，而是内存中的一个数组）字符串 ：StringReader、 StringWriter 对字符串进行处理的节点流管 道 ：PipedInputStream 、PipedOutputStream 、PipedReader 、PipedWriter 对管道进行处理的节点流 4.2 处理流和节点流一块使用，在节点流的基础上，再套接一层，套接在节点流上的就是处理流。如BufferedReader.处理流的构造方法总是要带一个其他的流对象做参数。一个流对象经过其他流的多次包装，称为流的链接。 常用的处理流缓冲流：BufferedInputStrean 、BufferedOutputStream、 BufferedReader、 BufferedWriter 增加缓冲功能，避免频繁读写硬盘。转换流：InputStreamReader 、OutputStreamReader实现字节流和字符流之间的转换。数据流： DataInputStream 、DataOutputStream 等-提供将基础数据类型写入到文件中，或者读取出来。 4.3 转换流实现从字节流到字符流的转换。 常用的转换流InputStreamReader 、OutputStreamWriter。(需要InputStream或OutputStream作为参数) 5.第三方IO包Apache Commons IO是Apache基金会创建并维护的Java函数库。它提供了许多类使得开发者的常见任务变得简单，同时减少重复代码，这些代码可能遍布于每个独立的项目中，你却不得不重复的编写。这些类由经验丰富的开发者维护，对各种问题的边界条件考虑周到，并持续修复相关bug。 常用类：FileUtils：https://www.cnblogs.com/zhaoyanjun/p/6396419.htmlIOUtils：https://www.cnblogs.com/zhaoyanjun/p/6401314.html 6.参考https://www.cnblogs.com/zhaoyanjun/p/6292384.html]]></content>
+      <categories>
+        <category>JAVA源码</category>
+      </categories>
+      <tags>
+        <tag>IO类</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[JDK源码分析之NIO类汇总]]></title>
+    <url>%2F2016%2F04%2F08%2F2016-04-08-JDK%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BNIO%E7%B1%BB%E6%B1%87%E6%80%BB%2F</url>
+    <content type="text"><![CDATA[0.概述标准的IO(BIO)基于字节流和字符流进行操作的，而NIO是基于通道（Channel）和缓冲区（Buffer）进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Java NIO可以让你非阻塞的使用IO，例如：当线程从通道读取数据到缓冲区时，线程还是可以进行其他事情。当数据被写入到缓冲区时，线程可以继续处理它。从缓冲区写入通道也类似。Java NIO 由以下几个核心部分组成：Channels、Buffers、Selectors。虽然Java NIO 中除此之外还有很多类和组件，但Channel，Buffer 和 Selector 构成了核心的API。其它组件，如Pipe和FileLock，只不过是与三个核心组件共同使用的工具类。 1.NIO -Channel类图 1.1 同步非阻塞通道FileChannel(文件通道)SocketChannel(收发TCP包的通道)ServerSocketChannel(收发TCP包的通道)DatagramChannel(收发UDP包的通道) 1.2 异步非阻塞通道AsynchronousFileChannel(异步文件通道)AsynchronousSocketChannel(异步TCP通道)AsynchronousServerSocketChannel(异步TCP通道) 1.3 管道Pipe(管道) 1.4 接口AsynchronousChannel(异步通道)NetworkChannel(网络通道)InterruptibleChannel(可中断通道)WritableByteChannel(可写通道)ReadableByteChannel(可读通道) AsynchronousByteChannel(异步字节通道)MulticastChannel(组播通道)GatheringByteChannel(聚集通道)ByteChannel(字节通道)ScatteringByteChannel(分散通道) SeekableByteChannel(可随机通道) 1.5 抽象类AbstractInterruptibleChannel（可中断通道）SelectableChannel(可选择通道)AbstractSelectableChannel(可选择通道) 2.参考http://ifeve.com/java-nio-all/]]></content>
       <categories>
         <category>JAVA源码</category>
       </categories>

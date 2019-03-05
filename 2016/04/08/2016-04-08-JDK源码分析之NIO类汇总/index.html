@@ -79,20 +79,20 @@
 
 
 
-<meta name="description" content="0.概述JDK中包含的IO类的梳理，对IO操作有一个全面的认识，在JDK中IO操作还有一个包NIO。都是对IO的操作，但是实现的原理还是不一样的。">
+<meta name="description" content="0.概述标准的IO(BIO)基于字节流和字符流进行操作的，而NIO是基于通道（Channel）和缓冲区（Buffer）进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Java NIO可以让你非阻塞的使用IO，例如：当线程从通道读取数据到缓冲区时，线程还是可以进行其他事情。当数据被写入到缓冲区时，线程可以继续处理它。从缓冲区写入通道也类似。">
 <meta name="keywords" content="IO类">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JDK源码分析之IO类汇总">
-<meta property="og:url" content="http://lvyafei.github.io/2016/04/08/2016-04-08-JDK源码分析之IO类汇总/index.html">
+<meta property="og:title" content="JDK源码分析之NIO类汇总">
+<meta property="og:url" content="http://lvyafei.github.io/2016/04/08/2016-04-08-JDK源码分析之NIO类汇总/index.html">
 <meta property="og:site_name" content="FeSa">
-<meta property="og:description" content="0.概述JDK中包含的IO类的梳理，对IO操作有一个全面的认识，在JDK中IO操作还有一个包NIO。都是对IO的操作，但是实现的原理还是不一样的。">
+<meta property="og:description" content="0.概述标准的IO(BIO)基于字节流和字符流进行操作的，而NIO是基于通道（Channel）和缓冲区（Buffer）进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Java NIO可以让你非阻塞的使用IO，例如：当线程从通道读取数据到缓冲区时，线程还是可以进行其他事情。当数据被写入到缓冲区时，线程可以继续处理它。从缓冲区写入通道也类似。">
 <meta property="og:locale" content="default">
-<meta property="og:image" content="http://lvyafei.github.io/images/java源码/IO-类图.jpg">
-<meta property="og:updated_time" content="2018-12-06T01:42:34.181Z">
+<meta property="og:image" content="http://lvyafei.github.io/images/java源码/NIO-Channel类图.png">
+<meta property="og:updated_time" content="2019-02-27T01:13:46.985Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="JDK源码分析之IO类汇总">
-<meta name="twitter:description" content="0.概述JDK中包含的IO类的梳理，对IO操作有一个全面的认识，在JDK中IO操作还有一个包NIO。都是对IO的操作，但是实现的原理还是不一样的。">
-<meta name="twitter:image" content="http://lvyafei.github.io/images/java源码/IO-类图.jpg">
+<meta name="twitter:title" content="JDK源码分析之NIO类汇总">
+<meta name="twitter:description" content="0.概述标准的IO(BIO)基于字节流和字符流进行操作的，而NIO是基于通道（Channel）和缓冲区（Buffer）进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Java NIO可以让你非阻塞的使用IO，例如：当线程从通道读取数据到缓冲区时，线程还是可以进行其他事情。当数据被写入到缓冲区时，线程可以继续处理它。从缓冲区写入通道也类似。">
+<meta name="twitter:image" content="http://lvyafei.github.io/images/java源码/NIO-Channel类图.png">
 
 
 
@@ -122,13 +122,13 @@
 
 
 
-  <link rel="canonical" href="http://lvyafei.github.io/2016/04/08/2016-04-08-JDK源码分析之IO类汇总/">
+  <link rel="canonical" href="http://lvyafei.github.io/2016/04/08/2016-04-08-JDK源码分析之NIO类汇总/">
 
 
 
 
 
-  <title>JDK源码分析之IO类汇总 | FeSa</title>
+  <title>JDK源码分析之NIO类汇总 | FeSa</title>
   
 
 
@@ -297,7 +297,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://lvyafei.github.io/2016/04/08/2016-04-08-JDK源码分析之IO类汇总/">
+    <link itemprop="mainEntityOfPage" href="http://lvyafei.github.io/2016/04/08/2016-04-08-JDK源码分析之NIO类汇总/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="lvyafei">
@@ -314,7 +314,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">JDK源码分析之IO类汇总</h1>
+          <h1 class="post-title" itemprop="name headline">JDK源码分析之NIO类汇总</h1>
         
 
         <div class="post-meta">
@@ -386,8 +386,16 @@
       
 
       
-        <h2 id="0-概述"><a href="#0-概述" class="headerlink" title="0.概述"></a>0.概述</h2><p>JDK中包含的IO类的梳理，对IO操作有一个全面的认识，在JDK中IO操作还有一个包NIO。都是对IO的操作，但是实现的原理还是不一样的。<br><a id="more"></a></p>
-<h2 id="1-类图"><a href="#1-类图" class="headerlink" title="1.类图"></a>1.类图</h2><p><img src="/images/java源码/IO-类图.jpg" alt="IO类图"></p>
+        <h2 id="0-概述"><a href="#0-概述" class="headerlink" title="0.概述"></a>0.概述</h2><p>标准的IO(BIO)基于字节流和字符流进行操作的，而NIO是基于通道（Channel）和缓冲区（Buffer）进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Java NIO可以让你非阻塞的使用IO，例如：当线程从通道读取数据到缓冲区时，线程还是可以进行其他事情。当数据被写入到缓冲区时，线程可以继续处理它。从缓冲区写入通道也类似。<br><a id="more"></a><br>Java NIO 由以下几个核心部分组成：Channels、Buffers、Selectors。虽然Java NIO 中除此之外还有很多类和组件，但Channel，Buffer 和 Selector 构成了核心的API。其它组件，如Pipe和FileLock，只不过是与三个核心组件共同使用的工具类。</p>
+<h2 id="1-NIO-Channel类图"><a href="#1-NIO-Channel类图" class="headerlink" title="1.NIO -Channel类图"></a>1.NIO -Channel类图</h2><p><img src="/images/java源码/NIO-Channel类图.png" alt="NIO类图"></p>
+<h3 id="1-1-同步非阻塞通道"><a href="#1-1-同步非阻塞通道" class="headerlink" title="1.1 同步非阻塞通道"></a>1.1 同步非阻塞通道</h3><p>FileChannel(文件通道)<br>SocketChannel(收发TCP包的通道)<br>ServerSocketChannel(收发TCP包的通道)<br>DatagramChannel(收发UDP包的通道)</p>
+<h3 id="1-2-异步非阻塞通道"><a href="#1-2-异步非阻塞通道" class="headerlink" title="1.2 异步非阻塞通道"></a>1.2 异步非阻塞通道</h3><p>AsynchronousFileChannel(异步文件通道)<br>AsynchronousSocketChannel(异步TCP通道)<br>AsynchronousServerSocketChannel(异步TCP通道)</p>
+<h3 id="1-3-管道"><a href="#1-3-管道" class="headerlink" title="1.3 管道"></a>1.3 管道</h3><p>Pipe(管道)</p>
+<h3 id="1-4-接口"><a href="#1-4-接口" class="headerlink" title="1.4 接口"></a>1.4 接口</h3><p>AsynchronousChannel(异步通道)<br>NetworkChannel(网络通道)<br>InterruptibleChannel(可中断通道)<br>WritableByteChannel(可写通道)<br>ReadableByteChannel(可读通道)</p>
+<p>AsynchronousByteChannel(异步字节通道)<br>MulticastChannel(组播通道)<br>GatheringByteChannel(聚集通道)<br>ByteChannel(字节通道)<br>ScatteringByteChannel(分散通道)</p>
+<p>SeekableByteChannel(可随机通道)</p>
+<h3 id="1-5-抽象类"><a href="#1-5-抽象类" class="headerlink" title="1.5 抽象类"></a>1.5 抽象类</h3><p>AbstractInterruptibleChannel（可中断通道）<br>SelectableChannel(可选择通道)<br>AbstractSelectableChannel(可选择通道)</p>
+<h2 id="2-参考"><a href="#2-参考" class="headerlink" title="2.参考"></a>2.参考</h2><p><a href="http://ifeve.com/java-nio-all/" target="_blank" rel="noopener">http://ifeve.com/java-nio-all/</a></p>
 
       
     </div>
@@ -428,8 +436,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2016/04/10/2016-04-10-互联网团队技术架构-新浪微博/" rel="prev" title="互联网团队技术-新浪微博">
-                互联网团队技术-新浪微博 <i class="fa fa-chevron-right"></i>
+              <a href="/2016/04/08/2016-04-08-JDK源码分析之BIO类汇总/" rel="prev" title="JDK源码分析之BIO类汇总">
+                JDK源码分析之BIO类汇总 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -507,7 +515,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">68</span>
+                  <span class="site-state-item-count">70</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -518,7 +526,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">30</span>
+                  <span class="site-state-item-count">31</span>
                   <span class="site-state-item-name">categories</span>
                 </a>
               </div>
@@ -529,7 +537,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">39</span>
+                  <span class="site-state-item-count">40</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -562,7 +570,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0-概述"><span class="nav-text">0.概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-类图"><span class="nav-text">1.类图</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0-概述"><span class="nav-text">0.概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-NIO-Channel类图"><span class="nav-text">1.NIO -Channel类图</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-同步非阻塞通道"><span class="nav-text">1.1 同步非阻塞通道</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-异步非阻塞通道"><span class="nav-text">1.2 异步非阻塞通道</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-管道"><span class="nav-text">1.3 管道</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-接口"><span class="nav-text">1.4 接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-抽象类"><span class="nav-text">1.5 抽象类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-参考"><span class="nav-text">2.参考</span></a></li></ol></div>
             
 
           </div>
