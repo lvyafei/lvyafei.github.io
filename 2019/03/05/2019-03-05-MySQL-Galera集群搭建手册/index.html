@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="FeSa">
 <meta property="og:description" content="1.安装首先配置yum源。在/etc/yum.repos.d/ 的目录下编辑gelare.repo文件。">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-03-06T06:14:34.915Z">
+<meta property="og:updated_time" content="2019-03-08T03:40:31.640Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MySQL-Galera集群搭建手册">
 <meta name="twitter:description" content="1.安装首先配置yum源。在/etc/yum.repos.d/ 的目录下编辑gelare.repo文件。">
@@ -388,13 +388,13 @@
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[galera]</span><br><span class="line">name = Galera</span><br><span class="line">baseurl = http://releases.galeracluster.com/galera-3/DIST/RELEASE/ARCH</span><br><span class="line">gpgkey = http://releases.galeracluster.com/GPG-KEY-galeracluster.com</span><br><span class="line">gpgcheck = 1</span><br><span class="line"></span><br><span class="line">[mysql-wsrep]</span><br><span class="line">name = MySQL-wsrep</span><br><span class="line">baseurl =  http://releases.galeracluster.com/mysql-wsrep-VERSION/DIST/RELEASE/ARCH</span><br><span class="line">gpgkey = http://releases.galeracluster.com/GPG-KEY-galeracluster.com</span><br><span class="line">gpgcheck = 1</span><br></pre></td></tr></table></figure>
 <p>注意需要替换掉相应的参数：<br>VERSION是mysql-wsrep的版本，如5.7；<br>DIST是操作系统，如centos；<br>RELEASE是操作系统版本，如6；<br>ARCH是系统架构，如x86_64；<br>视自己的环境不同作出相应的更改。<br>源配置好之后，就可以安装了，很简单，只需执行以下命令：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install galera-3 mysql-wsrep-5.7</span><br></pre></td></tr></table></figure>
-<h2 id="2-初始化"><a href="#2-初始化" class="headerlink" title="2.初始化"></a>2.初始化</h2><p>1.使用命令：mysqld –initialize 初始化mysql<br>2.查看默认密码: grep ‘temporary password’ /var/log/mysqld.log<br>3.更改权限：chown -R mysql:mysql /var/lib/mysql<br>4.启动mysql服务:service mysqld start<br>  进入mysql：mysql -uroot -p<br>  执行修改密码：alter user user() identified by “新密码”;<br>5.开放远程登录授权<br>    grant all privileges on <em>.</em> to ‘用户名‘@’%’ identified by ‘登录密码’ with grant option;<br>    flush privileges;<br>6.去掉Postfix,这个可能跟MySQL配置有冲突: yum remove postfix -y<br>7.关闭防火墙(生产上可开放端口)：<br>    setenforce 0 &amp;&amp; systemctl stop firewalld<br>8.关闭mysql服务：<br>    service mysqld stop （注意mysql5.7是mysqld）</p>
+<h2 id="2-初始化"><a href="#2-初始化" class="headerlink" title="2.初始化"></a>2.初始化</h2><p>1.使用命令：mysqld –initialize 初始化mysql<br>2.查看默认密码: grep ‘temporary password’ /var/log/mysqld.log<br>3.更改权限：chown -R mysql:mysql /var/lib/mysql<br>4.启动mysql服务:service mysqld start<br>  进入mysql：mysql -uroot -p<br>  执行修改密码：alter user user() identified by “新密码”;<br>5.开放远程登录授权<br>    GRANT ALL PRIVILEGES ON <em>.</em> TO ‘root‘@’%’ IDENTIFIED BY ‘123456’ WITH GRANT OPTION;<br>    flush privileges;<br>6.去掉Postfix,这个可能跟MySQL配置有冲突: yum remove postfix -y<br>7.关闭防火墙(生产上可开放端口)：<br>    setenforce 0 &amp;&amp; systemctl stop firewalld<br>8.关闭mysql服务：<br>    service mysqld stop （注意mysql5.7是mysqld）</p>
 <h2 id="3-配置文件"><a href="#3-配置文件" class="headerlink" title="3.配置文件"></a>3.配置文件</h2><p>1) 修改my.cnf</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/my.cnf，在末尾增加：!includedir /etc/my.cnf.d/</span><br></pre></td></tr></table></figure>
 <p>2) 修改wsrep.cnf</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/my.cnf.d/wsrep.cnf</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">server-id=133 #每个节点一个唯一的ID</span><br><span class="line">default-storage-engine=innodb</span><br><span class="line">innodb_autoinc_lock_mode=2</span><br><span class="line">innodb_locks_unsafe_for_binlog=1</span><br><span class="line">query_cache_size=0</span><br><span class="line">query_cache_type=0</span><br><span class="line">bind-address=0.0.0.0</span><br><span class="line">wsrep_provider=/usr/lib64/galera-3/libgalera_smm.so</span><br><span class="line">wsrep_provider_options=&apos;gmcast.listen_addr=tcp://192.168.88.133:4567&apos; #修改为本节点地址</span><br><span class="line">wsrep_cluster_name=&quot;my_wsrep_cluster&quot; #集群名称，所有节点配置为同一个</span><br><span class="line">wsrep_cluster_address=gcomm://192.168.88.133:4567,192.168.88.128:4567 #节点中所有节点地址</span><br><span class="line">wsrep_node_name=node133 #node名称，每个节点名称唯一</span><br><span class="line">wsrep_node_address=&apos;192.168.88.133&apos; #本节点地址</span><br><span class="line">wsrep_node_incoming_address=&apos;192.168.88.133&apos; #本节点地址</span><br><span class="line">wsrep_slave_threads=1</span><br><span class="line">wsrep_certify_nonPK=1</span><br><span class="line">wsrep_max_ws_rows=131072</span><br><span class="line">wsrep_max_ws_size=1073741824</span><br><span class="line">wsrep_debug=0</span><br><span class="line">wsrep_convert_LOCK_to_trx=0</span><br><span class="line">wsrep_retry_autocommit=1</span><br><span class="line">wsrep_auto_increment_control=1</span><br><span class="line">wsrep_drupal_282555_workaround=0</span><br><span class="line">wsrep_causal_reads=0</span><br><span class="line">wsrep_notify_cmd=</span><br><span class="line">wsrep_sst_method=rsync</span><br><span class="line">wsrep_sst_auth=root:2464323 #数据量库用户名密码</span><br><span class="line">wsrep_sst_donor=&apos;node133,node128&apos; #节点中所有节点的node名称</span><br></pre></td></tr></table></figure>
-<h2 id="4-第四步：启动"><a href="#4-第四步：启动" class="headerlink" title="4.第四步：启动"></a>4.第四步：启动</h2><p>任意选取一个节点，执行：</p>
+<h2 id="4-启动"><a href="#4-启动" class="headerlink" title="4.启动"></a>4.启动</h2><p>任意选取一个节点，执行：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/mysqld_bootstrap</span><br></pre></td></tr></table></figure>
 <p>然后登陆到mysql ，执行：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show status like "wsrep_cluster_size";</span><br></pre></td></tr></table></figure>
@@ -436,8 +436,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/01/22/2019-01-22-密码学入门/" rel="next" title="密码学入门">
-                <i class="fa fa-chevron-left"></i> 密码学入门
+              <a href="/2019/03/05/2019-03-05-MySQL-Galera最佳实践/" rel="next" title="MySQL-Galera最佳实践">
+                <i class="fa fa-chevron-left"></i> MySQL-Galera最佳实践
               </a>
             
           </div>
@@ -446,8 +446,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/03/05/2019-03-05-MySQL-Galera最佳实践/" rel="prev" title="MySQL-Galera最佳实践">
-                MySQL-Galera最佳实践 <i class="fa fa-chevron-right"></i>
+              <a href="/2019/03/06/2019-03-06-MongoDB集群搭建手册/" rel="prev" title="MongoDB集群搭建手册">
+                MongoDB集群搭建手册 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -580,7 +580,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-安装"><span class="nav-text">1.安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-初始化"><span class="nav-text">2.初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-配置文件"><span class="nav-text">3.配置文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-第四步：启动"><span class="nav-text">4.第四步：启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-集群重启："><span class="nav-text">5.集群重启：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-错误排查"><span class="nav-text">6.错误排查</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-安装"><span class="nav-text">1.安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-初始化"><span class="nav-text">2.初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-配置文件"><span class="nav-text">3.配置文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-启动"><span class="nav-text">4.启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-集群重启："><span class="nav-text">5.集群重启：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-错误排查"><span class="nav-text">6.错误排查</span></a></li></ol></div>
             
 
           </div>
