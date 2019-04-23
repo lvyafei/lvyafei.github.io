@@ -25,7 +25,7 @@
   <entry>
     <title><![CDATA[MySQL-Galera集群搭建手册]]></title>
     <url>%2F2019%2F03%2F05%2F2019-03-05-MySQL-Galera%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E6%89%8B%E5%86%8C%2F</url>
-    <content type="text"><![CDATA[1.安装首先配置yum源。在/etc/yum.repos.d/ 的目录下编辑gelare.repo文件。 1234567891011[galera]name = Galerabaseurl = http://releases.galeracluster.com/galera-3/DIST/RELEASE/ARCHgpgkey = http://releases.galeracluster.com/GPG-KEY-galeracluster.comgpgcheck = 1[mysql-wsrep]name = MySQL-wsrepbaseurl = http://releases.galeracluster.com/mysql-wsrep-VERSION/DIST/RELEASE/ARCHgpgkey = http://releases.galeracluster.com/GPG-KEY-galeracluster.comgpgcheck = 1 注意需要替换掉相应的参数：VERSION是mysql-wsrep的版本，如5.7；DIST是操作系统，如centos；RELEASE是操作系统版本，如6；ARCH是系统架构，如x86_64；视自己的环境不同作出相应的更改。源配置好之后，就可以安装了，很简单，只需执行以下命令： 1yum install galera-3 mysql-wsrep-5.7 2.初始化1.使用命令：mysqld –initialize 初始化mysql2.查看默认密码: grep ‘temporary password’ /var/log/mysqld.log3.更改权限：chown -R mysql:mysql /var/lib/mysql4.启动mysql服务:service mysqld start 进入mysql：mysql -uroot -p 执行修改密码：alter user user() identified by “新密码”;5.开放远程登录授权 GRANT ALL PRIVILEGES ON . TO ‘root‘@’%’ IDENTIFIED BY ‘123456’ WITH GRANT OPTION; flush privileges;6.去掉Postfix,这个可能跟MySQL配置有冲突: yum remove postfix -y7.关闭防火墙(生产上可开放端口)： setenforce 0 &amp;&amp; systemctl stop firewalld8.关闭mysql服务： service mysqld stop （注意mysql5.7是mysqld） 3.配置文件1) 修改my.cnf 1vim /etc/my.cnf，在末尾增加：!includedir /etc/my.cnf.d/ 2) 修改wsrep.cnf 1vi /etc/my.cnf.d/wsrep.cnf 1234567891011121314151617181920212223242526272829[mysqld]server-id=133 #每个节点一个唯一的IDdefault-storage-engine=innodbinnodb_autoinc_lock_mode=2innodb_locks_unsafe_for_binlog=1query_cache_size=0query_cache_type=0bind-address=0.0.0.0wsrep_provider=/usr/lib64/galera-3/libgalera_smm.sowsrep_provider_options=&apos;gmcast.listen_addr=tcp://192.168.88.133:4567&apos; #修改为本节点地址wsrep_cluster_name=&quot;my_wsrep_cluster&quot; #集群名称，所有节点配置为同一个wsrep_cluster_address=gcomm://192.168.88.133:4567,192.168.88.128:4567 #节点中所有节点地址wsrep_node_name=node133 #node名称，每个节点名称唯一wsrep_node_address=&apos;192.168.88.133&apos; #本节点地址wsrep_node_incoming_address=&apos;192.168.88.133&apos; #本节点地址wsrep_slave_threads=1wsrep_certify_nonPK=1wsrep_max_ws_rows=131072wsrep_max_ws_size=1073741824wsrep_debug=0wsrep_convert_LOCK_to_trx=0wsrep_retry_autocommit=1wsrep_auto_increment_control=1wsrep_drupal_282555_workaround=0wsrep_causal_reads=0wsrep_notify_cmd=wsrep_sst_method=rsyncwsrep_sst_auth=root:2464323 #数据量库用户名密码wsrep_sst_donor=&apos;node133,node128&apos; #节点中所有节点的node名称 4.启动任意选取一个节点，执行： 1/usr/bin/mysqld_bootstrap 然后登陆到mysql ，执行： 1show status like "wsrep_cluster_size"; 不出意外的话，就会显示1，表明这个集群内现在只有一个节点. 其他的节点依次执行： 1service mysqld start 然后再查看wsrep_cluster_size数量。 5.集群重启：在集群停止之后重启时，先在每个几点上使用mysqld_safe –wsrep-recover查看节点的Recovered position的值，选择值最大的一个作为第一个几点启动，如果启动失败，则在将作为第一个启动节点的服务器上编辑grastate.dat文件（可以使用find命令查找位置），将safe_to_bootstrap的值设为1，使用/usr/bin/mysqld_bootstrap命令启动该节点，其他节点启动与以前一致。 查看配置1cat /etc/my.cnf.d/wsrep.cnf 修改启动项12vim /var/lib/mysql/grastate.datsafe_to_bootstrap 改为1 6.错误排查查看mysql日志位置： 1show variables like &apos;log_error&apos;;]]></content>
+    <content type="text"><![CDATA[1.安装首先配置yum源。在/etc/yum.repos.d/ 的目录下编辑gelare.repo文件。 1234567891011[galera]name = Galerabaseurl = http://releases.galeracluster.com/galera-3/DIST/RELEASE/ARCHgpgkey = http://releases.galeracluster.com/GPG-KEY-galeracluster.comgpgcheck = 1[mysql-wsrep]name = MySQL-wsrepbaseurl = http://releases.galeracluster.com/mysql-wsrep-VERSION/DIST/RELEASE/ARCHgpgkey = http://releases.galeracluster.com/GPG-KEY-galeracluster.comgpgcheck = 1 注意需要替换掉相应的参数：VERSION是mysql-wsrep的版本，如5.7；DIST是操作系统，如centos；RELEASE是操作系统版本，如6；ARCH是系统架构，如x86_64；视自己的环境不同作出相应的更改。源配置好之后，就可以安装了，很简单，只需执行以下命令： 1yum install galera-3 mysql-wsrep-5.7 手动安装： 使用 (yum install -y 包名)命令进行安装。 安装顺序： 1、 mysql-wsrep-libs-compat-5.7-5.7.23-25.15.el7.x86_64.rpm 2、 mysql-wsrep-common-5.7-5.7.23-25.15.el7.x86_64.rpm 3、 mysql-wsrep-libs-5.7-5.7.23-25.15.el7.x86_64.rpm 4、 mysql-wsrep-devel-5.7-5.7.23-25.15.el7.x86_64.rpm 5、 mysql-wsrep-client-5.7-5.7.23-25.15.el7.x86_64.rpm 6、 mysql-wsrep-server-5.7-5.7.23-25.15.el7.x86_64.rpm 7、 mysql-wsrep-5.7-5.7.23-25.15.el7.x86_64.rpm 8、 mysql-wsrep-test-5.7-5.7.23-25.15.el7.x86_64.rpm（该包在安装时会提示没有 mysql-wsrep-server的依赖，使用rpm 加上–nodeps参数安装，该安装可忽略） 9、galera-3-25.3.24-2.el7.x86_64 2.初始化1.使用命令：mysqld –initialize 初始化mysql2.查看默认密码: grep ‘temporary password’ /var/log/mysqld.log3.更改权限：chown -R mysql:mysql /var/lib/mysql4.启动mysql服务:service mysqld start 进入mysql：mysql -uroot -p 执行修改密码：alter user user() identified by “新密码”;5.开放远程登录授权 GRANT ALL PRIVILEGES ON . TO ‘root‘@’%’ IDENTIFIED BY ‘123456’ WITH GRANT OPTION; flush privileges;6.去掉Postfix,这个可能跟MySQL配置有冲突: yum remove postfix -y7.关闭防火墙(生产上可开放端口)： setenforce 0 &amp;&amp; systemctl stop firewalld8.关闭mysql服务： service mysqld stop （注意mysql5.7是mysqld） 3.配置文件1) 修改my.cnf 1vim /etc/my.cnf，在末尾增加：!includedir /etc/my.cnf.d/ 2) 修改wsrep.cnf 1vi /etc/my.cnf.d/wsrep.cnf 1234567891011121314151617181920212223242526272829[mysqld]server-id=133 #每个节点一个唯一的IDdefault-storage-engine=innodbinnodb_autoinc_lock_mode=2innodb_locks_unsafe_for_binlog=1query_cache_size=0query_cache_type=0bind-address=0.0.0.0wsrep_provider=/usr/lib64/galera-3/libgalera_smm.sowsrep_provider_options=&apos;gmcast.listen_addr=tcp://192.168.88.133:4567&apos; #修改为本节点地址wsrep_cluster_name=&quot;my_wsrep_cluster&quot; #集群名称，所有节点配置为同一个wsrep_cluster_address=gcomm://192.168.88.133:4567,192.168.88.128:4567 #节点中所有节点地址wsrep_node_name=node133 #node名称，每个节点名称唯一wsrep_node_address=&apos;192.168.88.133&apos; #本节点地址wsrep_node_incoming_address=&apos;192.168.88.133&apos; #本节点地址wsrep_slave_threads=1wsrep_certify_nonPK=1wsrep_max_ws_rows=131072wsrep_max_ws_size=1073741824wsrep_debug=0wsrep_convert_LOCK_to_trx=0wsrep_retry_autocommit=1wsrep_auto_increment_control=1wsrep_drupal_282555_workaround=0wsrep_causal_reads=0wsrep_notify_cmd=wsrep_sst_method=rsyncwsrep_sst_auth=root:2464323 #数据量库用户名密码wsrep_sst_donor=&apos;node133,node128&apos; #节点中所有节点的node名称 4.启动任意选取一个节点，执行： 1/usr/bin/mysqld_bootstrap 然后登陆到mysql ，执行： 1show status like "wsrep_cluster_size"; 不出意外的话，就会显示1，表明这个集群内现在只有一个节点. 其他的节点依次执行： 1service mysqld start 然后再查看wsrep_cluster_size数量。 5.集群重启：在集群停止之后重启时，先在每个几点上使用mysqld_safe –wsrep-recover查看节点的Recovered position的值，选择值最大的一个作为第一个几点启动，如果启动失败，则在将作为第一个启动节点的服务器上编辑grastate.dat文件（可以使用find命令查找位置），将safe_to_bootstrap的值设为1，使用/usr/bin/mysqld_bootstrap命令启动该节点，其他节点启动与以前一致。 查看配置1cat /etc/my.cnf.d/wsrep.cnf 修改启动项12vim /var/lib/mysql/grastate.datsafe_to_bootstrap 改为1 6.错误排查查看mysql日志位置： 1show variables like &apos;log_error&apos;;]]></content>
       <categories>
         <category>MySQL</category>
       </categories>
@@ -344,6 +344,17 @@
       </tags>
   </entry>
   <entry>
+    <title><![CDATA[机器学习算法-相似度-MahalanobisDistance(马氏距离)]]></title>
+    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-MahalanobisDistance(%E9%A9%AC%E6%B0%8F%E8%B7%9D%E7%A6%BB)%2F</url>
+    <content type="text"><![CDATA[0.概述马氏距离是由印度统计学家马哈拉诺比斯提出的，表示数据的协方差距离。它是一种有效的计算两个未知样本集的相似度的方法。与欧氏距离不同的是它考虑到各种特征之间的联系，即独立于测量尺度。 1.马氏距离公式设总体G为m维总体(考察m个指标),均值向量为μ，协方差矩阵为S,则样品X=(x1,x2,…xm)’与总体G的马氏距离定义为: 向量Xi与Xj之间的马氏距离定义为： 若协方差矩阵是单位矩阵（各个样本向量之间独立同分布）,则公式就成了： 若协方差矩阵是对角矩阵，公式变成了标准化欧氏距离。 2.马氏距离可视化 3.优缺点马氏距离和量纲(尺寸)无关，排除变量之间的相关性干扰。]]></content>
+      <categories>
+        <category>相似度算法</category>
+      </categories>
+      <tags>
+        <tag>机器学习</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[机器学习算法-相似度-HammingDistance(汉明距离)]]></title>
     <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-HammingDistance(%E6%B1%89%E6%98%8E%E8%B7%9D%E7%A6%BB)%2F</url>
     <content type="text"><![CDATA[0.概述两个等长字符串s1与s2之间的汉明距离定义为将其中一个变为另外一个所需要作的最小替换次数。例如字符串“1111”与“1001”之间的汉明距离为2。 1.应用场景信息编码（为了增强容错性，应使得编码间的最小汉明距离尽可能大）。 2.Octave实例]]></content>
@@ -366,31 +377,20 @@
       </tags>
   </entry>
   <entry>
-    <title><![CDATA[机器学习算法-相似度-PearsonCorrelationSimilarity(皮尔森相似度)]]></title>
-    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-PearsonCorrelationSimilarity(%E7%9A%AE%E5%B0%94%E6%A3%AE%E7%9B%B8%E4%BC%BC%E5%BA%A6)%2F</url>
-    <content type="text"><![CDATA[0.概述皮尔森相关系数反应了两个变量之间的线性相关程度，它的取值在[-1, 1]之间。当两个变量的线性关系增强时，相关系数趋于1或-1；当一个变量增大，另一个变量也增大时，表明它们之间是正相关的，相关系数大于0；如果一个变量增大，另一个变量却减小，表明它们之间是负相关的，相关系数小于0；如果相关系数等于0，表明它们之间不存在线性相关关系。 1.皮尔森相似度描述用数学公式表示，皮尔森相关系数等于两个变量的协方差除于两个变量的标准差。 2.协方差(Covariance)在概率论和统计学中用于衡量两个变量的总体误差。如果两个变量的变化趋于一致，也就是说如果其中一个大于自身的期望值，另一个也大于自身的期望值，那么两个变量之间的协方差就是正值；如果两个变量的变化趋势相反，则协方差为负值。 其中u表示X的期望E(X), v表示Y的期望E(Y) 3.标准差(Standard Deviation)标准差是方差的平方根 4.方差(Variance)在概率论和统计学中，一个随机变量的方差表述的是它的离散程度，也就是该变量与期望值的距离。即方差等于误差的平方和的期望 5.缺点基于皮尔森相关系数的相似度有两个缺点： (1) 没有考虑（take into account）用户间重叠的评分项数量对相似度的影响； (2) 如果两个用户之间只有一个共同的评分项，相似度也不能被计算 上表中，行表示用户（1～5）对项目（101～103）的一些评分值。直观来看，User1和User5用3个共同的评分项，并且给出的评分走差也不大，按理他们之间的相似度应该比User1和User4之间的相似度要高，可是User1和User4有一个更高的相似度1。 同样的场景在现实生活中也经常发生，比如两个用户共同观看了200部电影，虽然不一定给出相同或完全相近的评分，他们之间的相似度也应该比另一位只观看了2部相同电影的相似度高吧！但事实并不如此，如果对这两部电影，两个用户给出的相似度相同或很相近，通过皮尔森相关性计算出的相似度会明显大于观看了相同的200部电影的用户之间的相似度。 Mahout对基于皮尔森相关系数的相似度给出了实现，它依赖一个DataModel作为输入。 同时，Mahout还针对缺点(1)进行了优化，只需要在构造PearsonCorrelationSimilarity时多传入一个Weighting.WEIGHTED参数，就能使有更多相同评分项目的用户之间的相似度更趋近于1或-1。 UserSimilarity similarity1 = new PearsonCorrelationSimilarity(model); double value1 = similarity1.userSimilarity(1, 5); UserSimilarity similarity2 = new PearsonCorrelationSimilarity(model, Weighting.WEIGHTED); double value2 = similarity2.userSimilarity(1, 5); 结果： Similarity of User1 and User5: 0.944911182523068 Similarity of User1 and User5 with weighting: 0.9655694890769175]]></content>
-      <categories>
-        <category>相似度算法</category>
-      </categories>
-      <tags>
-        <tag>机器学习</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title><![CDATA[机器学习算法-相似度-MahalanobisDistance(马氏距离)]]></title>
-    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-MahalanobisDistance(%E9%A9%AC%E6%B0%8F%E8%B7%9D%E7%A6%BB)%2F</url>
-    <content type="text"><![CDATA[0.概述马氏距离是由印度统计学家马哈拉诺比斯提出的，表示数据的协方差距离。它是一种有效的计算两个未知样本集的相似度的方法。与欧氏距离不同的是它考虑到各种特征之间的联系，即独立于测量尺度。 1.马氏距离公式设总体G为m维总体(考察m个指标),均值向量为μ，协方差矩阵为S,则样品X=(x1,x2,…xm)’与总体G的马氏距离定义为: 向量Xi与Xj之间的马氏距离定义为： 若协方差矩阵是单位矩阵（各个样本向量之间独立同分布）,则公式就成了： 若协方差矩阵是对角矩阵，公式变成了标准化欧氏距离。 2.马氏距离可视化 3.优缺点马氏距离和量纲(尺寸)无关，排除变量之间的相关性干扰。]]></content>
-      <categories>
-        <category>相似度算法</category>
-      </categories>
-      <tags>
-        <tag>机器学习</tag>
-      </tags>
-  </entry>
-  <entry>
     <title><![CDATA[机器学习算法-相似度-SpearmanCorrelationSimilarity(皮尔斯曼相关系数相似度)]]></title>
     <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-SpearmanCorrelationSimilarity(%E7%9A%AE%E5%B0%94%E6%96%AF%E6%9B%BC%E7%9B%B8%E5%85%B3%E7%B3%BB%E6%95%B0%E7%9B%B8%E4%BC%BC%E5%BA%A6)%2F</url>
     <content type="text"><![CDATA[0.概述皮尔斯曼相关度的计算舍弃了一些重要信息，即真实的评分值。但它保留了用户喜好值的本质特性——排序（ordering），它是建立在排序（或等级，Rank）的基础上计算的。 1.皮尔斯曼相关性描述皮尔斯曼相关性可以理解为是排列后（Rank）用户喜好值之间的Pearson相关度。《Mahout in Action》中有这样的解释：假设对于每个用户，我们找到他最不喜欢的物品，重写他的评分值为“1”；然后找到下一个最不喜欢的物品，重写评分值为“2”，以此类推。然后我们对这些转换后的值求Pearson相关系数，这就是Spearman相关系数。 2.举例User1～5对Item101～103的喜好（评分）值，通过斯皮尔曼相关系数计算出的相似度为： 我们发现，计算出来的相似度值要么是1，要么是-1，因为这依赖于用户的喜好值和User1的喜好值是否趋于“一致变化”还是呈“相反趋势变化”。 Mahout对斯皮尔曼相关系数给出了实现，具体可参考SpearmanCorrelationSimilarity，它的执行效率不是非常高，因为斯皮尔曼相关性的计算需要花时间计算并存储喜好值的一个排序（Ranks），具体时间取决于数据的数量级大小。正因为这样，斯皮尔曼相关系数一般用于学术研究或者是小规模的计算。 代码： 考虑到Spearman Correlation的效率，可以把SpearmanCorrelationSimilarity包装一层Cache，具体做法为： UserSimilarity similarity2 = new CachingUserSimilarity(new SpearmanCorrelationSimilarity(model), model); 这样，每次计算的结果会直接放入Cache，下一次计算的时候可以立即得到结果，而不是重新再计算一次。]]></content>
+      <categories>
+        <category>相似度算法</category>
+      </categories>
+      <tags>
+        <tag>机器学习</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[机器学习算法-相似度-PearsonCorrelationSimilarity(皮尔森相似度)]]></title>
+    <url>%2F2016%2F11%2F30%2F2016-11-30-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95-%E7%9B%B8%E4%BC%BC%E5%BA%A6-PearsonCorrelationSimilarity(%E7%9A%AE%E5%B0%94%E6%A3%AE%E7%9B%B8%E4%BC%BC%E5%BA%A6)%2F</url>
+    <content type="text"><![CDATA[0.概述皮尔森相关系数反应了两个变量之间的线性相关程度，它的取值在[-1, 1]之间。当两个变量的线性关系增强时，相关系数趋于1或-1；当一个变量增大，另一个变量也增大时，表明它们之间是正相关的，相关系数大于0；如果一个变量增大，另一个变量却减小，表明它们之间是负相关的，相关系数小于0；如果相关系数等于0，表明它们之间不存在线性相关关系。 1.皮尔森相似度描述用数学公式表示，皮尔森相关系数等于两个变量的协方差除于两个变量的标准差。 2.协方差(Covariance)在概率论和统计学中用于衡量两个变量的总体误差。如果两个变量的变化趋于一致，也就是说如果其中一个大于自身的期望值，另一个也大于自身的期望值，那么两个变量之间的协方差就是正值；如果两个变量的变化趋势相反，则协方差为负值。 其中u表示X的期望E(X), v表示Y的期望E(Y) 3.标准差(Standard Deviation)标准差是方差的平方根 4.方差(Variance)在概率论和统计学中，一个随机变量的方差表述的是它的离散程度，也就是该变量与期望值的距离。即方差等于误差的平方和的期望 5.缺点基于皮尔森相关系数的相似度有两个缺点： (1) 没有考虑（take into account）用户间重叠的评分项数量对相似度的影响； (2) 如果两个用户之间只有一个共同的评分项，相似度也不能被计算 上表中，行表示用户（1～5）对项目（101～103）的一些评分值。直观来看，User1和User5用3个共同的评分项，并且给出的评分走差也不大，按理他们之间的相似度应该比User1和User4之间的相似度要高，可是User1和User4有一个更高的相似度1。 同样的场景在现实生活中也经常发生，比如两个用户共同观看了200部电影，虽然不一定给出相同或完全相近的评分，他们之间的相似度也应该比另一位只观看了2部相同电影的相似度高吧！但事实并不如此，如果对这两部电影，两个用户给出的相似度相同或很相近，通过皮尔森相关性计算出的相似度会明显大于观看了相同的200部电影的用户之间的相似度。 Mahout对基于皮尔森相关系数的相似度给出了实现，它依赖一个DataModel作为输入。 同时，Mahout还针对缺点(1)进行了优化，只需要在构造PearsonCorrelationSimilarity时多传入一个Weighting.WEIGHTED参数，就能使有更多相同评分项目的用户之间的相似度更趋近于1或-1。 UserSimilarity similarity1 = new PearsonCorrelationSimilarity(model); double value1 = similarity1.userSimilarity(1, 5); UserSimilarity similarity2 = new PearsonCorrelationSimilarity(model, Weighting.WEIGHTED); double value2 = similarity2.userSimilarity(1, 5); 结果： Similarity of User1 and User5: 0.944911182523068 Similarity of User1 and User5 with weighting: 0.9655694890769175]]></content>
       <categories>
         <category>相似度算法</category>
       </categories>
@@ -531,17 +531,6 @@
       </tags>
   </entry>
   <entry>
-    <title><![CDATA[Docker常用指令备忘录]]></title>
-    <url>%2F2016%2F07%2F22%2F2016-07-22-Docker%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4%E5%A4%87%E5%BF%98%E5%BD%95%2F</url>
-    <content type="text"><![CDATA[0.概述Docker常用的指令，方便以后查找 1.查看镜像docker images 2.拉取镜像docker pull &lt;镜像名:tag&gt; #从官网拉取镜像 docker search &lt;镜像名&gt; #搜索在线可用镜像名 3.查看容器docker ps #查看正在运行的容器 docker ps -l #查看最后退出的容器的ID docker ps -a #查看所有的容器，包括退出的。 docker start [PID] //启动停止的容器 docker stop [PID] //停止运行的容器 docker kill [PID] //杀死容器 4.设置后台运行容器docker run -d -i –name zkServer -p 2181:2181 index.tenxcloud.com/sdvdxl/zookeeper -d :后台运行 –name：设置容器名称 -p：设置端口对应 -i:保持输入流开放即使没有附加输入流 -t=false:分配一个伪造的终端输入 5.删除容器与删除镜像docker rm$(docker ps -a -q) #删除所有容器 docker rm &lt;容器名or ID&gt; #删除单个容器 docker rmi #删除单个镜像 docker rmi$(docker images | grep none | awk ‘{print $3}’ | sort -r) 6.进入容器docker attach [ID或名称] 可以attach到一个已经运行的容器的stdin，然后进行命令执行的动作。但是需要注意的是，如果从这个stdin中exit，会导致容器的停止。 docker exec -it [ID或名称] /bin/sh 只使用-i时，由于没有分配伪终端，看起来像pipe执行一样。但是执行结果、命令返回值都可以正确获取。 只使用-t参数，则可以看到一个console窗口，但是执行命令会发现由于没有获得stdin的输出，无法看到命令执行情况。 使用-it时，则和我们平常操作console界面类似。而且也不会像attach方式因为退出，导致整个容器退出。这种方式可以替代ssh或者nsenter、nsinit方式，在容器内进行操作。 7.常见错误端口映射配置前需要确保iptables服务开启 若遇到以下错误:COMMAND_FAILED: ‘/sbin/iptables -t nat -A DOCKER -p tcp -d 0/0 –dport 8111 -j DNAT –to-destination 172.17.0.6:8111 ! -i docker0’ failed: iptables: No chain/target/match by that name. 执行以下操作: service docker stop iptables -t nat -F ifconfig docker0 down brctl delbr docker0 service docker start 8.Dockerfile构建命令从fesaDockerFile中构建容器 docker build -t fesa:latest - &lt; fesaDockerFile]]></content>
-      <categories>
-        <category>Docker指令</category>
-      </categories>
-      <tags>
-        <tag>备忘录</tag>
-      </tags>
-  </entry>
-  <entry>
     <title><![CDATA[推荐场景1-推荐用户已购买的内容]]></title>
     <url>%2F2016%2F07%2F22%2F2016-07-22-%E6%8E%A8%E8%8D%90%E5%9C%BA%E6%99%AF1-%E6%8E%A8%E8%8D%90%E7%94%A8%E6%88%B7%E5%B7%B2%E8%B4%AD%E4%B9%B0%E7%9A%84%E5%86%85%E5%AE%B9%2F</url>
     <content type="text"><![CDATA[0.概述推荐场景中，存在给用户推荐自己已经购买的商品，其实用户对自己购买过的商品基本上不会再去买了，没有挖掘出用户的下一步诉求，就不能引导用户进行新的尝试。用户买过手机后我们可以在推荐列表中去放入用户下一步可能要买的商品，比如说：耳机，充电器，其他品牌的手机。不要把用户买过的商品大量的放入推荐列表中，转换效果不好，用户点击欲望也不会高。 1.购物场景用户买了手机套，给用户的推荐结果是手机套，手机套，手机套。。。其实我们应该让用户看到其他和手机套的相关的内容，而不是一味的去推荐已经购买的商品。推荐系统应该要自己猜测到用户其实是拥有一部什么样牌子的手机，用户的年龄是多少？用户的购物能力有多高？可以给用户推荐一些其他领域的商品。]]></content>
@@ -550,6 +539,17 @@
       </categories>
       <tags>
         <tag>推荐系统</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Docker常用指令备忘录]]></title>
+    <url>%2F2016%2F07%2F22%2F2016-07-22-Docker%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4%E5%A4%87%E5%BF%98%E5%BD%95%2F</url>
+    <content type="text"><![CDATA[0.概述Docker常用的指令，方便以后查找 1.查看镜像docker images 2.拉取镜像docker pull &lt;镜像名:tag&gt; #从官网拉取镜像 docker search &lt;镜像名&gt; #搜索在线可用镜像名 3.查看容器docker ps #查看正在运行的容器 docker ps -l #查看最后退出的容器的ID docker ps -a #查看所有的容器，包括退出的。 docker start [PID] //启动停止的容器 docker stop [PID] //停止运行的容器 docker kill [PID] //杀死容器 4.设置后台运行容器docker run -d -i –name zkServer -p 2181:2181 index.tenxcloud.com/sdvdxl/zookeeper -d :后台运行 –name：设置容器名称 -p：设置端口对应 -i:保持输入流开放即使没有附加输入流 -t=false:分配一个伪造的终端输入 5.删除容器与删除镜像docker rm$(docker ps -a -q) #删除所有容器 docker rm &lt;容器名or ID&gt; #删除单个容器 docker rmi #删除单个镜像 docker rmi$(docker images | grep none | awk ‘{print $3}’ | sort -r) 6.进入容器docker attach [ID或名称] 可以attach到一个已经运行的容器的stdin，然后进行命令执行的动作。但是需要注意的是，如果从这个stdin中exit，会导致容器的停止。 docker exec -it [ID或名称] /bin/sh 只使用-i时，由于没有分配伪终端，看起来像pipe执行一样。但是执行结果、命令返回值都可以正确获取。 只使用-t参数，则可以看到一个console窗口，但是执行命令会发现由于没有获得stdin的输出，无法看到命令执行情况。 使用-it时，则和我们平常操作console界面类似。而且也不会像attach方式因为退出，导致整个容器退出。这种方式可以替代ssh或者nsenter、nsinit方式，在容器内进行操作。 7.常见错误端口映射配置前需要确保iptables服务开启 若遇到以下错误:COMMAND_FAILED: ‘/sbin/iptables -t nat -A DOCKER -p tcp -d 0/0 –dport 8111 -j DNAT –to-destination 172.17.0.6:8111 ! -i docker0’ failed: iptables: No chain/target/match by that name. 执行以下操作: service docker stop iptables -t nat -F ifconfig docker0 down brctl delbr docker0 service docker start 8.Dockerfile构建命令从fesaDockerFile中构建容器 docker build -t fesa:latest - &lt; fesaDockerFile]]></content>
+      <categories>
+        <category>Docker指令</category>
+      </categories>
+      <tags>
+        <tag>备忘录</tag>
       </tags>
   </entry>
   <entry>
