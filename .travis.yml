@@ -14,8 +14,8 @@ cache:
 
 #在构建之前安装hexo环境和主题，这里的主题就是原来修改过的主题，我将其托管到另一个github仓库，直接clone就行，否则每次都是新的主题，要重新设置。
 before_install:
-  - npm install -g hexo-cli
-  - git clone https://github.com/smduan/next.git themes/next
+  #- npm install -g hexo-cli
+  #- git clone https://github.com/smduan/next.git themes/next
 
 #安装git插件和搜索功能插件
 install:
