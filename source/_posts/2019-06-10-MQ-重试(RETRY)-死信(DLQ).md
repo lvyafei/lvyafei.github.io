@@ -10,6 +10,7 @@ author: lvyafei
 ## 1.RocketMQ消息消费失败的处理策略
 
 Consumer从Broker拉取到消息之后进行消费，但是消费并不一定都是顺利的，不可避免会遇到一些异常情况，这种情况下RocketMQ提供了怎样的处理机制？以PushConsumer为例来看下与之相关的操作。
+<!--more-->
 
 ## 2.Consumer消费异常处理流程
 
