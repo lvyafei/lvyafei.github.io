@@ -148,3 +148,19 @@ DOCKER_HOST=tcp://<host>:2375
 	</configuration>
 </plugin>
 ```
+
+其中需要注意的是serverId的配置，该配置为私有仓库的登录信息，需要settings.xml文件配合serverId对应的服务地址：
+
+```
+<serverId>zts-docker-hub</serverId>
+```
+
+在maven的setting.xml中配置如下：
+
+```
+<server>
+  <id>zts-docker-hub</id>
+  <username>xxx</username>
+  <password>xxx</password>
+</server>
+```
