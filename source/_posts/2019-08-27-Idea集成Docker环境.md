@@ -164,3 +164,9 @@ DOCKER_HOST=tcp://<host>:2375
   <password>xxx</password>
 </server>
 ```
+
+## 5.编译项目
+
+```
+mvn clean deploy -T 1C -DskipTests=true -Dmaven.compile.fork=true
+```
