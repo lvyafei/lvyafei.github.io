@@ -225,4 +225,16 @@ SELECT * FROM t_user WHERE id = '1' and id = '2'
 
 ## 4.参考链接
 
-原文链接：https://blog.csdn.net/why15732625998/article/details/80388236
+[MySQL高级](一) EXPLAIN用法和结果分析: https://blog.csdn.net/why15732625998/article/details/80388236
+
+[MySQL高级](二) 索引简介: https://blog.csdn.net/why15732625998/article/details/80390357
+
+[MySQL高级](三) 索引分析: https://blog.csdn.net/why15732625998/article/details/80395712
+
+[MySQL高级](四) 索引优化之索引失效: https://blog.csdn.net/why15732625998/article/details/80409164
+
+[MySQL高级](五) 查询截取分析: https://blog.csdn.net/why15732625998/article/details/80423742
+
+[MySQL高级](六) 锁机制: https://blog.csdn.net/why15732625998/article/details/80439315
+
+[MySQL高级](七) MySQL主从复制及读写分离实战: https://blog.csdn.net/why15732625998/article/details/80463041
