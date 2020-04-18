@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="机器学习,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="0.概述基于树模型的分类与回归算法。">
+<meta name="keywords" content="机器学习">
+<meta property="og:type" content="article">
+<meta property="og:title" content="决策树-随机森林-Boosting-Adaboost-GBDT由决策树衍生的分类算法">
+<meta property="og:url" content="http://lvyafei.github.io/2016/12/29/2016-12-29-决策树-随机森林-Boosting-Adaboost-GBDT由决策树衍生的分类算法/index.html">
+<meta property="og:site_name" content="FeSa">
+<meta property="og:description" content="0.概述基于树模型的分类与回归算法。">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-04-18T10:31:35.028Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="决策树-随机森林-Boosting-Adaboost-GBDT由决策树衍生的分类算法">
+<meta name="twitter:description" content="0.概述基于树模型的分类与回归算法。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://lvyafei.github.io/2016/12/29/2016-12-29-决策树-随机森林-Boosting-Adaboost-GBDT由决策树衍生的分类算法/">
+
+
+
+
+
+  <title>决策树-随机森林-Boosting-Adaboost-GBDT由决策树衍生的分类算法 | FeSa</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">FeSa</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">develop & design</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="Searching..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://lvyafei.github.io/2016/12/29/2016-12-29-决策树-随机森林-Boosting-Adaboost-GBDT由决策树衍生的分类算法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lvyafei">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="FeSa">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">决策树-随机森林-Boosting-Adaboost-GBDT由决策树衍生的分类算法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-12-29T00:00:00+00:00">
+                2016-12-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/分类算法/" itemprop="url" rel="index">
+                    <span itemprop="name">分类算法</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="0-概述"><a href="#0-概述" class="headerlink" title="0.概述"></a>0.概述</h2><p>基于树模型的分类与回归算法。<br><a id="more"></a></p>
+<h2 id="1-决策树-Decision-Tree-DT-分类算法"><a href="#1-决策树-Decision-Tree-DT-分类算法" class="headerlink" title="1.决策树(Decision Tree,DT)分类算法"></a>1.决策树(Decision Tree,DT)分类算法</h2><p>决策树是一种常见的分类与回归模型，主要呈树结构，每一个节点代表一个集合，一条边代表一种属性，而叶子节点则表示对应的类别或值。根据节点分裂规则的不同，主要分为三种方法。</p>
+<p><strong>ID3算法</strong></p>
+<p>ID3算法采用的是选择一个特征使得分裂前后样本集合的不确定性降低最大，也就是信息增益最大。</p>
+<p>计算方式：g(D,A)=H(D)-H(D/A)。H(D)表示分裂前对应样本集合的经验熵，而H(D/A)表示在A特征划分下的样本经验熵，也就是由特征A进行子集划分后的经验熵之和。</p>
+<p>ID3算法采用信息增益最大的方式，对于一个节点而言，其对应的样本集合如果所有的类别不是一类，且样本集合不为空，逐个选择特征计算信息增益，选择最大的信息增益，如果其信息增益大于阈值，则按照对应的特征进行样本划分（分裂），然后对每个子节点和样本，循环上述的方法，否则停止。</p>
+<p><strong>C4.5算法</strong></p>
+<p>C4.5算法是ID3算法的改进，由于ID3计算方式会导致选择特征时倾向于选择值较多的特征，C4.5引入了信息增益比的方式。即当前特征下计算的信息增益除以此特征对应的经验熵，基于C4.5的决策树的生产方式与上述类似。</p>
+<p>剪枝规则：剪枝的思想就是比较当前节点的下对应的整棵决策树的损失函数，与返回到其父节点上对应的损失函数，当父节点下对应的损失函数比子节点下的损失函数更小时，可以进行剪枝，将父节点变为叶子节点，去掉其子节点。至于决策树的损失函数，是各个叶子节点上的经验熵与节点样本数之积的总和，加上a<em>T，T为叶子节点数。其中前半部分用于表征决策树的训练误差，而a</em>T则代表了决策树的复杂程度。根据剃刀准则，只有在训练误差足够下的同时，模型也足够简单，这样的模型才是最好的，能够防止过拟合。</p>
+<p><strong>CART算法</strong></p>
+<p>CART算法也是对分裂规则进行改进，可以用来进行分类与回归，能够处理连续的数据。CART分类规则是选择特征A，使得划分前后基尼系数比的降低最大，也就是划分后左右节点的基尼系数之和最小。</p>
+<p>在使用CART树进行回归时，可以采用基于方差的形式，由于回归时标签都是连续值，因此使用方差较为合适。即分别挑选一个特征，基于此特征下，逐个遍历特征值，将样本划分为左右子集（2层循环，第一层为特征数，第二层为某个特征对应的取值），计算左右子集的方差之和，找到所有的特征下特征值对应的方差最小的那个特征和特征值，作为划分特征和阈值，进行节点的分裂。CART树的生成方式是二叉树的形式，与上述两种方法有些微不同。但是大体的步骤相同。</p>
+<p>剪枝规则：采用的是分别记录由根节点到各个节点下对应的决策树的损失函数序列，找到在设定值a下决策树对训练数据的预测误差最小对应的树结构。</p>
+<h2 id="2-随机森林-RandomForests-RandomTrees"><a href="#2-随机森林-RandomForests-RandomTrees" class="headerlink" title="2.随机森林(RandomForests/RandomTrees)"></a>2.随机森林(RandomForests/RandomTrees)</h2><p>随机森林类似bagging思想，对样本进行多次采用，并以此生成多颗决策树，通过投票获得判别结果。</p>
+<p>随机森林中的每棵树与决策树的区别：主要包括3点：</p>
+<p>1）.样本随机采样:n=2/3*N;就是说对训练样本而言，每棵树从样本集中采用大约2/3的样本进行决策树的训练；</p>
+<p>2）.特征随机抽取：k&lt;&lt;K;对于样本集中的特征，不是逐个遍历所有的特征进行划分，而是在所有的特征中随机选择k个特征，从这k个特征中找到最优的划分特征，以此对节点的样本进行划分，因此用过的特征可能还会出现。</p>
+<p>3）.无剪枝：由于随机森林在进行训练样本选择时是随机抽样的，选择划分特征时也是随机的，因此不需要进行剪枝。</p>
+<p>OBB无偏估计：一般对于所有的训练样本，抽取2/3的样本数进行决策树的训练，那么大约有1/3的样本没有被抽取到，由limN-∞ (1-1/N)^N求得。这些样本成为袋外样本，利用这些样本对随机森林中的决策树进行预测误差的估计，称为obb无偏估计。</p>
+<h2 id="3-霍夫森林-HoughForests"><a href="#3-霍夫森林-HoughForests" class="headerlink" title="3.霍夫森林(HoughForests)"></a>3.霍夫森林(HoughForests)</h2><p>主要用来进行目标检测，也有人用来进行头部姿态估计。它与随机森林相比，往往还需要每个样本到目标中心的距离值，作为额外的输入。</p>
+<p>对于分裂规则：对于样本集合，包括特征、标签以及中心距离，首先生成二值测试特征集，对于当前节点的样本集，选择一个二值测试特征集中的一个特征，将样本集划分为两个子集{0,1}，对于0、1子集，分别随机选择类别不确定规则与位置不确定规则（可进行分类或回归，CART规则）计算总误差。遍历所有的二值测试集中的特征，找到最小的总误差对应的二值测试特征，将当前节点的样本集进行左右划分。此外当达到停止条件时就停止分裂。</p>
+<h2 id="4-Boosting算法"><a href="#4-Boosting算法" class="headerlink" title="4.Boosting算法"></a>4.Boosting算法</h2><p>Boosting算法是一种把若干个分类器整合为一个分类器的方法，在boosting算法产生之前，还出现过两种比较重要的将多个分类器整合为一个分类器的方法，即boostrapping方法和bagging方法。boosting算法的思想受到bootstraping思想和bagging想的启发而产生，大致原理是通过训练多个分类器作为一个模型，提升决策能力。我们先简要介绍一下bootstrapping方法和bagging方法。</p>
+<p>(1)boosttraping ：是一种样本抽样方式，对一个样本集N，只采样其中的一部分子样本m个，放入模型中去学习，一般是有放回的抽样。跟随机森林中的样本随机选取一样。</p>
+<p>主要步骤：</p>
+<p>i)重复地从一个样本集合D中采样n个样本</p>
+<p>ii)针对每次采样的子样本集，进行统计学习，获得假设Hi</p>
+<p>iii)将若干个假设进行组合，形成最终的假设Hfinal</p>
+<p>iv)将最终的假设用于具体的分类任务</p>
+<p>(2)bagging：其思想是指对一个样本集N，分别抽样m个子集合，每个子集分别对应一个模型进行训练。最后的输出结果为各个模型的结果投票。即对分类问题，各个类别结果相加取最大，对于回归问题，各模型输出的平均值。</p>
+<p>主要思路:</p>
+<p>i)训练分类器</p>
+<p>从整体样本集合中，抽样n* &lt; N个样本 针对抽样的集合训练分类器Ci。<br>　<br>ii)分类器进行投票，最终的结果是分类器投票的优胜结果。</p>
+<p>述这两种方法，都只是将分类器进行简单的组合，实际上，并没有发挥出分类器组合的威力来。直到1989年，Yoav Freund与 Robert Schapire提出了一种可行的将弱分类器组合为强分类器的方法。并由此而获得了2003年的哥德尔奖（Godel price）。</p>
+<p>Schapire还提出了一种早期的boosting算法，其主要过程如下：</p>
+<p>i)从样本整体集合D中，不放回的随机抽样n1 &lt; n 个样本，得到集合 D1</p>
+<p>训练弱分类器C1</p>
+<p>ii)从样本整体集合D中，抽取 n2 &lt; n 个样本，其中合并进一半被 C1 分类错误的样本。得到样本集合 D2<br>　<br>训练弱分类器C2<br>　<br>iii)抽取D样本集合中，C1 和 C2 分类不一致样本，组成D3</p>
+<p>训练弱分类器C3<br>　<br>iv)用三个分类器做投票，得到最后分类结果</p>
+<p>到了1995年，Freund and schapire提出了现在的adaboost算法，其主要框架可以描述为：</p>
+<p>i)循环迭代多次</p>
+<p>更新样本分布<br>　<br>寻找当前分布下的最优弱分类器</p>
+<p>计算弱分类器误差率</p>
+<p>ii)聚合多次训练的弱分类器</p>
+<p>现在，boost算法有了很大的发展，出现了很多的其他boost算法，例如：logitboost算法，gentleboost算法等等。我们将着重介绍adaboost算法的过程和特性。</p>
+<h2 id="5-Adaboost算法"><a href="#5-Adaboost算法" class="headerlink" title="5.Adaboost算法"></a>5.Adaboost算法</h2><p>Adaboost算法能够进行实际应用的boosting算法。</p>
+<p><strong>Adaboost算法主要步骤：</strong></p>
+<p>a.初始化样本的权值为1/n。</p>
+<p>b.基于样本与权值训练弱分类器；这里的弱分类器就是个二分类器。</p>
+<p>c.根据分类器对样本进行判别，如果判别正确，此样本的权值降低，判别错误，降低样本的权值，同时根据识别率计算出此分类器的权值。</p>
+<p>d.利用改变权值的样本训练下一个分类器；</p>
+<p>e.循环得到N个分类器与其对应的权值；</p>
+<p>f.基于加权的分类器组合成为最终的模型。</p>
+<p>Adaboost算法模型简单，不容易过拟合，无需调参，优点挺多。但是其实也是需要根据样本类型来使用。</p>
+<p><strong>Adaboost的特点</strong></p>
+<p>1）每次迭代改变的是样本的分布，而不是重复采样（re weight)</p>
+<p>2）样本分布的改变取决于样本是否被正确分类</p>
+<p>总是分类正确的样本权值低</p>
+<p>总是分类错误的样本权值高（通常是边界附近的样本）</p>
+<p>3）最终的结果是弱分类器的加权组合</p>
+<p>权值表示该弱分类器的性能</p>
+<p><strong>Adaboost的优点:</strong></p>
+<p>1)adaboost是一种有很高精度的分类器</p>
+<p>2)可以使用各种方法构建子分类器，adaboost算法提供的是框架</p>
+<p>3)当使用简单分类器时，计算出的结果是可以理解的。而且弱分类器构造极其简单</p>
+<p>4)简单，不用做特征筛选</p>
+<p>5)不用担心overfitting！</p>
+<h2 id="6-多分类Adaboost"><a href="#6-多分类Adaboost" class="headerlink" title="6.多分类Adaboost"></a>6.多分类Adaboost</h2><p>在日常任务中，我们通常需要去解决多分类的问题。而前面的介绍中，adaboost算法只能适用于二分类的情况。因此，在这一小节中，我们着重介绍如何将adaboost算法调整到适合处理多分类任务的方法。</p>
+<p>目前有三种比较常用的将二分类adaboost方法:</p>
+<p>1、adaboost M1方法</p>
+<p>主要思路： adaboost组合的若干个弱分类器本身就是多分类的分类器。</p>
+<p>在训练的时候，样本权重空间的计算方法不变，在解码的时候，选择一个最有可能的分类</p>
+<p>2、adaboost MH方法</p>
+<p>主要思路： 组合的弱分类器仍然是二分类的分类器，将分类label和分类样例组合，生成N个样本，在这个新的样本空间上训练分类器。</p>
+<p>3、对多分类输出进行二进制编码</p>
+<p>主要思路：对N个label进行二进制编码，例如用m位二进制数表示一个label。然后训练m个二分类分类器，在解码时生成m位的二进制数。从而对应到一个label上。</p>
+<p>最后，我们可以总结下adaboost算法的一些实际可以使用的场景：</p>
+<p>1）用于二分类或多分类的应用场景</p>
+<p>2）用于做分类任务的baseline<br>　<br>无脑化，简单，不会overfitting，不用调分类器</p>
+<p>3）用于特征选择（feature selection)</p>
+<p>4）Boosting框架用于对badcase的修正</p>
+<p>只需要增加新的分类器，不需要变动原有分类器</p>
+<p>由于adaboost算法是一种实现简单，应用也很简单的算法。Adaboost算法通过组合弱分类器而得到强分类器，同时具有分类错误率上界随着训练增加而稳定下降，不会过拟合等的性质，应该说是一种很适合于在各种分类场景下应用的算法。</p>
+<h2 id="7-GBD"><a href="#7-GBD" class="headerlink" title="7.GBD"></a>7.GBD</h2><p>误差函数的梯度。根据第一个模型可以写出对应的误差函数，通过最小化误差函数得到第一个模型的参数，此时再加入第二个模型，形成新的误差函数，此时模型一的参数已知了，通过最小化新的误差函数，得到第二个模型的参数。在每次得到的误差函数，对每个模型的参数的导数，为误差函数的梯度。</p>
+<h2 id="8-GBDT"><a href="#8-GBDT" class="headerlink" title="8.GBDT"></a>8.GBDT</h2><p>GBDT(Gradient Boosting Decision Tree) 又叫 MART（Multiple Additive Regression Tree)，是一种迭代的决策树算法，该算法由多棵决策树组成，所有树的结论累加起来做最终答案。它在被提出之初就和SVM一起被认为是泛化能力（generalization)较强的算法。近些年更因为被用于搜索排序的机器学习模型而引起大家关注。</p>
+<p>GBDT主要由三个概念组成：Regression Decistion Tree（即DT)，Gradient Boosting（即GB)，Shrinkage (算法的一个重要演进分枝，目前大部分源码都按该版本实现）。搞定这三个概念后就能明白GBDT是如何工作的。</p>
+<p><strong>DT(回归树)</strong></p>
+<p>决策树分为两大类，回归树和分类树。GBDT中的树都是回归树，不是分类树。回归树总体流程也是类似，不过在每个节点（不一定是叶子节点）都会得一个预测值。</p>
+<p>以年龄为例，该预测值等于属于这个节点的所有人年龄的平均值。分枝时穷举每一个feature的每个阈值找最好的分割点，但衡量最好的标准不再是最大熵，而是最小化均方差–即（每个人的年龄-预测年龄）^2 的总和 / N，或者说是每个人的预测误差平方和 除以 N。</p>
+<p><strong>GB(梯度迭代)</strong></p>
+<p>GBDT的核心就在于，每一棵树学的是之前所有树结论和的残差，这个残差就是一个加预测值后能得真实值的累加量。</p>
+<p>比如A的真实年龄是18岁，但第一棵树的预测年龄是12岁，差了6岁，即残差为6岁。那么在第二棵树里我们把A的年龄设为6岁去学习，如果第二棵树真的能把A分到6岁的叶子节点，那累加两棵树的结论就是A的真实年龄；如果第二棵树的结论是5岁，则A仍然存在1岁的残差，第三棵树里A的年龄就变成1岁，继续学。这就是Gradient Boosting在GBDT中的意义</p>
+<p>那么哪里体现了Gradient呢？其实回到第一棵树结束时想一想，无论此时的cost function是什么，是均方差还是均差，只要它以误差作为衡量标准，残差向量(-1, 1, -1, 1)都是它的全局最优方向，这就是Gradient。</p>
+<p>讲到这里我们已经把GBDT最核心的概念、运算过程讲完了！没错就是这么简单。不过讲到这里很容易发现三个问题：</p>
+<p>1）使用回归决策树和GBDT有时最终效果相同，为何还需要GBDT呢？</p>
+<p>答案是过拟合。过拟合是指为了让训练集精度更高，学到了很多”仅在训练集上成立的规律“，导致换一个数据集当前规律就不适用了。其实只要允许一棵树的叶子节点足够多，训练集总是能训练到100%准确率的（大不了最后一个叶子上只有一个instance)。在训练精度和实际精度（或测试精度）之间，后者才是我们想要真正得到的。</p>
+<p>2）Gradient呢？不是“G”BDT么？</p>
+<p>到目前为止，我们的确没有用到求导的Gradient。在当前版本GBDT描述中，的确没有用到Gradient，该版本用残差作为全局最优的绝对方向，并不需要Gradient求解.</p>
+<p>3）这不是boosting吧？Adaboost可不是这么定义的。</p>
+<p>这是boosting，但不是Adaboost。GBDT不是Adaboost Decistion Tree。就像提到决策树大家会想起C4.5，提到boost多数人也会想到Adaboost。Adaboost是另一种boost方法，它按分类对错，分配不同的weight，计算cost function时使用这些weight，从而让“错分的样本权重越来越大，使它们更被重视”。Bootstrap也有类似思想，它在每一步迭代时不改变模型本身，也不计算残差，而是从N个instance训练集中按一定概率重新抽取N个instance出来（单个instance可以被重复sample），对着这N个新的instance再训练一轮。由于数据集变了迭代模型训练结果也不一样，而一个instance被前面分错的越厉害，它的概率就被设的越高，这样就能同样达到逐步关注被分错的instance，逐步完善的效果。Adaboost的方法被实践证明是一种很好的防止过拟合的方法，但至于为什么则至今没从理论上被证明。GBDT也可以在使用残差的同时引入Bootstrap re-sampling，GBDT多数实现版本中也增加的这个选项，但是否一定使用则有不同看法。re-sampling一个缺点是它的随机性，即同样的数据集合训练两遍结果是不一样的，也就是模型不可稳定复现，这对评估是很大挑战，比如很难说一个模型变好是因为你选用了更好的feature，还是由于这次sample的随机因素。</p>
+<p><strong>Shrinkage(缩减)</strong></p>
+<p>Shrinkage的思想认为，每次走一小步逐渐逼近结果的效果，要比每次迈一大步很快逼近结果的方式更容易避免过拟合。即它不完全信任每一个棵残差树，它认为每棵树只学到了真理的一小部分，累加的时候只累加一小部分，通过多学几棵树弥补不足。本质上，Shrinkage为每棵树设置了一个weight，累加时要乘以这个weight，但和Gradient并没有关系。这个weight就是step。就像Adaboost一样，Shrinkage能减少过拟合发生也是经验证明的，目前还没有看到从理论的证明。</p>
+<h2 id="9-GBDT的适用范围"><a href="#9-GBDT的适用范围" class="headerlink" title="9.GBDT的适用范围"></a>9.GBDT的适用范围</h2><p>该版本GBDT几乎可用于所有回归问题（线性/非线性），相对logistic regression仅能用于线性回归，GBDT的适用面非常广。亦可用于二分类问题（设定阈值，大于阈值为正例，反之为负例）。</p>
+<p>参考：</p>
+<p><a href="http://baidutech.blog.51cto.com/4114344/743809/" target="_blank" rel="noopener">http://baidutech.blog.51cto.com/4114344/743809/</a></p>
+<p><a href="http://blog.csdn.net/tianxiaguixin002/article/details/47701881" target="_blank" rel="noopener">http://blog.csdn.net/tianxiaguixin002/article/details/47701881</a></p>
+<p><a href="http://blog.csdn.net/w28971023/article/details/8240756" target="_blank" rel="noopener">http://blog.csdn.net/w28971023/article/details/8240756</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/机器学习/" rel="tag"># 机器学习</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/12/28/2016-12-28-数据挖掘导论-读书笔记/" rel="next" title="数据挖掘导论-读书笔记">
+                <i class="fa fa-chevron-left"></i> 数据挖掘导论-读书笔记
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/12/31/2016-12-31-机器学习算法-回归-最小二乘法/" rel="prev" title="机器学习算法-回归-最小二乘法(LeastSquare)">
+                机器学习算法-回归-最小二乘法(LeastSquare) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">lvyafei</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">92</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">40</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">54</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0-概述"><span class="nav-text">0.概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-决策树-Decision-Tree-DT-分类算法"><span class="nav-text">1.决策树(Decision Tree,DT)分类算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-随机森林-RandomForests-RandomTrees"><span class="nav-text">2.随机森林(RandomForests/RandomTrees)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-霍夫森林-HoughForests"><span class="nav-text">3.霍夫森林(HoughForests)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Boosting算法"><span class="nav-text">4.Boosting算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-Adaboost算法"><span class="nav-text">5.Adaboost算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-多分类Adaboost"><span class="nav-text">6.多分类Adaboost</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-GBD"><span class="nav-text">7.GBD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-GBDT"><span class="nav-text">8.GBDT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-GBDT的适用范围"><span class="nav-text">9.GBDT的适用范围</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lvyafei</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

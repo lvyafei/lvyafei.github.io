@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="MQ,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="0.基础准备在Docker中搭建RocketMQ集群环境。">
+<meta name="keywords" content="MQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RocketMQ-docker搭建">
+<meta property="og:url" content="http://lvyafei.github.io/2018/11/26/2018-11-26-RocketMQ-docker搭建/index.html">
+<meta property="og:site_name" content="FeSa">
+<meta property="og:description" content="0.基础准备在Docker中搭建RocketMQ集群环境。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://lvyafei.github.io/images/rocketmq/1.png">
+<meta property="og:image" content="http://lvyafei.github.io/images/rocketmq/2.png">
+<meta property="og:image" content="http://lvyafei.github.io/images/rocketmq/3.png">
+<meta property="og:updated_time" content="2020-04-18T10:31:35.032Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RocketMQ-docker搭建">
+<meta name="twitter:description" content="0.基础准备在Docker中搭建RocketMQ集群环境。">
+<meta name="twitter:image" content="http://lvyafei.github.io/images/rocketmq/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://lvyafei.github.io/2018/11/26/2018-11-26-RocketMQ-docker搭建/">
+
+
+
+
+
+  <title>RocketMQ-docker搭建 | FeSa</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">FeSa</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">develop & design</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="Searching..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://lvyafei.github.io/2018/11/26/2018-11-26-RocketMQ-docker搭建/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lvyafei">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="FeSa">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RocketMQ-docker搭建</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-11-26T00:00:00+00:00">
+                2018-11-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">中间件</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="0-基础准备"><a href="#0-基础准备" class="headerlink" title="0.基础准备"></a>0.基础准备</h2><p>在Docker中搭建RocketMQ集群环境。<br><a id="more"></a></p>
+<p>jdk1.8下载地址：</p>
+<p><a href="https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html" target="_blank" rel="noopener">https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html</a></p>
+<p>maven 下载地址:</p>
+<p><a href="http://archive.apache.org/dist/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz" target="_blank" rel="noopener">http://archive.apache.org/dist/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz</a></p>
+<p>rocketmq-4.3.2下载地址：</p>
+<p><a href="https://github.com/apache/rocketmq/archive/rocketmq-all-4.3.2.tar.gz" target="_blank" rel="noopener">https://github.com/apache/rocketmq/archive/rocketmq-all-4.3.2.tar.gz</a></p>
+<p>rocketmq-console下载:</p>
+<p><a href="https://github.com/apache/rocketmq-externals/archive/rocketmq-console-1.0.0.zip" target="_blank" rel="noopener">https://github.com/apache/rocketmq-externals/archive/rocketmq-console-1.0.0.zip</a></p>
+<p>配置maven镜像仓库地址:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mirrors</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mirror</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">id</span>&gt;</span>alimaven<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">name</span>&gt;</span>aliyun maven<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span>        </span><br><span class="line">    <span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mirrors</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>参考资料(rocketmq集群介绍)：</p>
+<p><a href="https://blog.csdn.net/leexide/article/details/80035470" target="_blank" rel="noopener">https://blog.csdn.net/leexide/article/details/80035470</a></p>
+<p><a href="https://roc-wong.github.io/blog/2018/11/RocketMQ-at-a-glance.html" target="_blank" rel="noopener">https://roc-wong.github.io/blog/2018/11/RocketMQ-at-a-glance.html</a></p>
+<p>关闭防火墙:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> systemctl stop firewalld</span><br></pre></td></tr></table></figure>
+<h2 id="1-RocketMQ-集群环境搭建"><a href="#1-RocketMQ-集群环境搭建" class="headerlink" title="1.RocketMQ 集群环境搭建"></a>1.RocketMQ 集群环境搭建</h2><h3 id="1-1-RocketMQ编译"><a href="#1-1-RocketMQ编译" class="headerlink" title="1.1 RocketMQ编译"></a>1.1 RocketMQ编译</h3><p>java,maven环境变量首先配置正确。</p>
+<p>然后更改本地maven的镜像仓库地址,最后进入到RocketMQ的源代码文件夹中,执行编译</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> mvn -Prelease-all -DskipTests clean install -U</span><br></pre></td></tr></table></figure>
+<p>执行完后，将 rocketmq-rocketmq-all-4.3.2/distribution/target 目录下的 apache-rocketmq 文件夹 copy 到 /opt 或应用存放的目录中。</p>
+<h3 id="1-2-更改默认的JVM配置"><a href="#1-2-更改默认的JVM配置" class="headerlink" title="1.2 更改默认的JVM配置"></a>1.2 更改默认的JVM配置</h3><p>修改namesrv的配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> vim bin/runserver.sh</span><br><span class="line">...</span><br><span class="line">JAVA_OPT="$&#123;JAVA_OPT&#125; -server -Xms4g -Xmx4g -Xmn2g -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>修改broker的配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> vim /bin/runbroker.sh</span><br><span class="line">...</span><br><span class="line">JAVA_OPT="$&#123;JAVA_OPT&#125; -server -Xms8g -Xmx8g -Xmn4g"</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<h3 id="1-3-broker配置修改"><a href="#1-3-broker配置修改" class="headerlink" title="1.3 broker配置修改"></a>1.3 broker配置修改</h3><p>broker的配置文件在 config/broker.conf中，其中 config/2m-2s-async 为多Master多Slave模式(异步复制)集群配置，config/2m-2s-sync为多Master多Slave模式(同步双写)集群配置，config/2m-noslave 为多Master集群。每种集群模式的优缺点见参考资料。</p>
+<p>每种配置的关键配置项，如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#集群名称(相同名称的brokerName,根据brokerId来区别主从)</span><br><span class="line">brokerName=broker-a|broker-b</span><br><span class="line"></span><br><span class="line">#0表示Master,&gt;0表示Slave</span><br><span class="line">brokerId=0</span><br><span class="line"></span><br><span class="line">#Broker在集群的角色(和borkerId对应)</span><br><span class="line">#- ASYNC_MASTER 异步复制Master</span><br><span class="line">#- SYNC_MASTER 同步双写Master</span><br><span class="line">#- SLAVE</span><br><span class="line">brokerRole=ASYNC_MASTER</span><br><span class="line"></span><br><span class="line">#刷盘方式(2m-2s-async与2m-2s-sync的区别点就是这个配置)</span><br><span class="line">#- ASYNC_FLUSH 异步刷盘</span><br><span class="line">#- SYNC_FLUSH 同步刷盘</span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br></pre></td></tr></table></figure>
+<p>以上内容修改完毕后，还需要添加以下配置:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># Broker的IP地址</span><br><span class="line">brokerIP1 = xxxxxx</span><br><span class="line"></span><br><span class="line"># NameServer地址列表，多个nameServer地址用分号隔开</span><br><span class="line">namesrvAddr = 10.29.183.66:9876;10.29.183.81:9876;10.29.183.82:9876;10.29.183.83:9876</span><br><span class="line"></span><br><span class="line"># 是否自动创建Topic,若关闭，客户端在使用一个未事先创建好的Topic会报错，打开改配置则会自动创建</span><br><span class="line">autoCreateTopicEnable = true</span><br></pre></td></tr></table></figure>
+<h3 id="1-4-启动namesrv-broker"><a href="#1-4-启动namesrv-broker" class="headerlink" title="1.4 启动namesrv,broker"></a>1.4 启动namesrv,broker</h3><p><strong>启动namesrv：</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> nohup sh bin/mqnamesrv &gt; /dev/null 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
+<p>查看日志:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> tail -f ~/logs/rocketmqlogs/namesrv.log</span><br></pre></td></tr></table></figure>
+<p><strong>启动broker:</strong></p>
+<p>方式一：手动指定namesrv地址:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> nohup sh bin/mqbroker -n localhost:9876 &gt; /dev/null 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure></p>
+<p>方式二:指定配置文件(推荐):<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> nohup sh bin/mqbroker -c conf/broker.conf &gt; /dev/null 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure></p>
+<p>查看日志：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> tail -f ~/logs/rocketmqlogs/broker.log</span><br></pre></td></tr></table></figure>
+<h3 id="1-5-停止namesrv-broker"><a href="#1-5-停止namesrv-broker" class="headerlink" title="1.5 停止namesrv,broker"></a>1.5 停止namesrv,broker</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> sh bin/mqshutdown namesrv</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> sh bin/mqshutdown broker</span><br></pre></td></tr></table></figure>
+<h3 id="1-6-测试Producer-Consumer"><a href="#1-6-测试Producer-Consumer" class="headerlink" title="1.6 测试Producer,Consumer"></a>1.6 测试Producer,Consumer</h3><p>首先设置namesrv的地址</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> export NAMESRV_ADDR=localhost:9876</span><br></pre></td></tr></table></figure>
+<p>测试发送消息:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh bin/tools.sh org.apache.rocketmq.example.quickstart.Producer</span><br></pre></td></tr></table></figure>
+<p>测试接受消息:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh bin/tools.sh org.apache.rocketmq.example.quickstart.Consumer</span><br></pre></td></tr></table></figure></p>
+<h3 id="1-7-mqadmin功能一览"><a href="#1-7-mqadmin功能一览" class="headerlink" title="1.7 mqadmin功能一览"></a>1.7 mqadmin功能一览</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"># sh bin/mqadmin</span><br><span class="line"></span><br><span class="line">updateTopic          Update or create topic</span><br><span class="line">deleteTopic          Delete topic from broker and NameServer.</span><br><span class="line">updateSubGroup       Update or create subscription group</span><br><span class="line">deleteSubGroup       Delete subscription group from broker.</span><br><span class="line">updateBrokerConfig   Update broker&apos;s config</span><br><span class="line">updateTopicPerm      Update topic perm</span><br><span class="line">topicRoute           Examine topic route info</span><br><span class="line">topicStatus          Examine topic Status info</span><br><span class="line">topicClusterList     get cluster info for topic</span><br><span class="line">brokerStatus         Fetch broker runtime status data</span><br><span class="line">queryMsgById         Query Message by Id</span><br><span class="line">queryMsgByKey        Query Message by Key</span><br><span class="line">queryMsgByUniqueKey  Query Message by Unique key</span><br><span class="line">queryMsgByOffset     Query Message by offset</span><br><span class="line">printMsg             Print Message Detail</span><br><span class="line">printMsgByQueue      Print Message Detail</span><br><span class="line">sendMsgStatus        send msg to broker.</span><br><span class="line">brokerConsumeStats   Fetch broker consume stats data</span><br><span class="line">producerConnection   Query producer&apos;s socket connection and client version</span><br><span class="line">consumerConnection   Query consumer&apos;s socket connection, client version and subscription</span><br><span class="line">consumerProgress     Query consumers&apos;s progress, speed</span><br><span class="line">consumerStatus       Query consumer&apos;s internal data structure</span><br><span class="line">cloneGroupOffset     clone offset from other group.</span><br><span class="line">clusterList          List all of clusters</span><br><span class="line">topicList            Fetch all topic list from name server</span><br><span class="line">updateKvConfig       Create or update KV config.</span><br><span class="line">deleteKvConfig       Delete KV config.</span><br><span class="line">wipeWritePerm        Wipe write perm of broker in all name server</span><br><span class="line">resetOffsetByTime    Reset consumer offset by timestamp(without client restart).</span><br><span class="line">updateOrderConf      Create or update or delete order conf</span><br><span class="line">cleanExpiredCQ       Clean expired ConsumeQueue on broker.</span><br><span class="line">cleanUnusedTopic     Clean unused topic on broker.</span><br><span class="line">startMonitoring      Start Monitoring</span><br><span class="line">statsAll             Topic and Consumer tps stats</span><br><span class="line">allocateMQ           Allocate MQ</span><br><span class="line">checkMsgSendRT       check message send response time</span><br><span class="line">clusterRT            List All clusters Message Send RT</span><br><span class="line">getNamesrvConfig     Get configs of name server.</span><br><span class="line">updateNamesrvConfig  Update configs of name server.</span><br><span class="line">getBrokerConfig      Get broker config by cluster or special broker!</span><br><span class="line">queryCq              Query cq command.</span><br><span class="line">sendMessage          Send a message</span><br><span class="line">consumeMessage       Consume message</span><br></pre></td></tr></table></figure>
+<h3 id="1-8-broker-conf主要配置"><a href="#1-8-broker-conf主要配置" class="headerlink" title="1.8 broker.conf主要配置"></a>1.8 broker.conf主要配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">#===================主要配置===============</span><br><span class="line"></span><br><span class="line">#所属集群名字</span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"></span><br><span class="line">#broker名字，注意此处不同的配置文件填写的不一样</span><br><span class="line">brokerName=broker-a|broker-b</span><br><span class="line"></span><br><span class="line">#0表示Master，&gt;0表示Slave</span><br><span class="line">brokerId=0</span><br><span class="line"></span><br><span class="line">#nameServer地址，分号分割</span><br><span class="line">namesrvAddr=192.168.1.101:9876;192.168.1.102:9876</span><br><span class="line"></span><br><span class="line">#限制的消息大小</span><br><span class="line">maxMessageSize=65536</span><br><span class="line">#flushCommitLogLeastPages=4</span><br><span class="line">#flushConsumeQueueLeastPages=2</span><br><span class="line">#flushCommitLogThoroughInterval=10000</span><br><span class="line">#flushConsumeQueueThoroughInterval=60000</span><br><span class="line"></span><br><span class="line">#Broker 的角色</span><br><span class="line">#- ASYNC_MASTER 异步复制Master</span><br><span class="line">#- SYNC_MASTER 同步双写Master</span><br><span class="line">#- SLAVE</span><br><span class="line">brokerRole=ASYNC_MASTER</span><br><span class="line">#刷盘方式</span><br><span class="line">#- ASYNC_FLUSH 异步刷盘</span><br><span class="line">#- SYNC_FLUSH 同步刷盘</span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br><span class="line"></span><br><span class="line">#在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"></span><br><span class="line">#是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"></span><br><span class="line">#是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"></span><br><span class="line">#Broker 对外服务的监听端口</span><br><span class="line">listenPort=10911</span><br><span class="line"></span><br><span class="line">#============持久化配置=================</span><br><span class="line"></span><br><span class="line">#删除文件时间点，默认凌晨 4点</span><br><span class="line">deleteWhen=04</span><br><span class="line">#文件保留时间，默认 48 小时</span><br><span class="line">fileReservedTime=120</span><br><span class="line"></span><br><span class="line">#commitLog每个文件的大小默认1G</span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line">#ConsumeQueue每个文件默认存30W条，根据业务情况调整</span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line">#destroyMapedFileIntervalForcibly=120000</span><br><span class="line">#redeleteHangedFileInterval=120000</span><br><span class="line">#检测物理文件磁盘空间</span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line">#存储路径</span><br><span class="line">storePathRootDir=/data/rocketmq/store</span><br><span class="line">#commitLog 存储路径</span><br><span class="line">storePathCommitLog=/data/rocketmq/store/commitlog</span><br><span class="line">#消费队列存储路径存储路径</span><br><span class="line">storePathConsumeQueue=/data/rocketmq/store/consumequeue</span><br><span class="line">#消息索引存储路径</span><br><span class="line">storePathIndex=/data/rocketmq/store/index</span><br><span class="line">#checkpoint 文件存储路径</span><br><span class="line">storeCheckpoint=/data/rocketmq/store/checkpoint</span><br><span class="line">#abort 文件存储路径</span><br><span class="line">abortFile=/data/rocketmq/store/abort</span><br><span class="line"></span><br><span class="line">#===================线程池配置====================</span><br><span class="line">checkTransactionMessageEnable=false</span><br><span class="line">#发消息线程池数量</span><br><span class="line">sendMessageThreadPoolNums=128</span><br><span class="line">#拉消息线程池数量</span><br><span class="line">pullMessageThreadPoolNums=128</span><br></pre></td></tr></table></figure>
+<h2 id="2-Docker使用指南"><a href="#2-Docker使用指南" class="headerlink" title="2.Docker使用指南"></a>2.Docker使用指南</h2><h3 id="2-1-docker常用命令"><a href="#2-1-docker常用命令" class="headerlink" title="2.1 docker常用命令"></a>2.1 docker常用命令</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> yum install -y docker  //安装docker</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> service docker start  //启动docker</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> service docker status //查看docker服务状态</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> service docker stop  //停止docker服务</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> systemctl reload docker //刷新docker配置</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker ps -a  //检查docker运行状态</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> docker start rocketmq  //启动容器</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> docker stop rocketmq  //停止容器</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> docker rm 容器ID/Name  //删除容器</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> docker rm `docker ps -a -q` //删除所有容器</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker images //查看本地镜像列表</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> docker rmi 镜像名称 //删除镜像</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> docker rmi $(docker images -q) //删除所有镜像</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-编辑docker仓库地址"><a href="#2-2-编辑docker仓库地址" class="headerlink" title="2.2 编辑docker仓库地址"></a>2.2 编辑docker仓库地址</h3><p>编辑仓库地址: vim /etc/docker/daemon.json</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"><span class="attr">"registry-mirrors"</span>: [<span class="string">"https://registry.docker-cn.com"</span>],</span><br><span class="line"><span class="attr">"insecure-registries"</span>:[<span class="string">"10.25.24.161:5000"</span>,<span class="string">"10.29.139.47:5000"</span>,<span class="string">"10.29.139.47:5001"</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>参数详细说明：<a href="https://docs.docker.com/engine/reference/commandline/dockerd/#daemon-user-namespace-options" target="_blank" rel="noopener">https://docs.docker.com/engine/reference/commandline/dockerd/#daemon-user-namespace-options</a></p>
+<h3 id="2-3-获取基础镜像"><a href="#2-3-获取基础镜像" class="headerlink" title="2.3 获取基础镜像"></a>2.3 获取基础镜像</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker pull 10.29.139.47:5001/base/java</span><br></pre></td></tr></table></figure>
+<p>从docker hub上获取centos基础镜像</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker pull centos:latest</span><br></pre></td></tr></table></figure>
+<h3 id="2-4-docker-run-启动容器"><a href="#2-4-docker-run-启动容器" class="headerlink" title="2.4 docker run 启动容器"></a>2.4 docker run 启动容器</h3><p>启动容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker run ...</span><br></pre></td></tr></table></figure>
+<p>–name:容器实例名称</p>
+<p>–privileged:使用该参数，container内的root拥有真正的root权限。</p>
+<p>-td：后台运行容器（–tty，–detach）</p>
+<p>-it 创建一个交互式的容器</p>
+<p>-p 映射端口(本机的端口：映射的容器的端口)</p>
+<p>-v 挂载目录/root/software:/software(本地目录：容器目录)，在创建前容器是没有software目录的，docker 容器会自己创建</p>
+<p>–privileged=true 关闭安全权限，否则你容器操作文件夹没有权限</p>
+<blockquote>
+<p>资源限制：</p>
+</blockquote>
+<p>–ulimit memlock=-1：容器使用内存不受限制</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker容器资源限制默认：</span><br><span class="line"></span><br><span class="line">–default-ulimit nofile=131072 </span><br><span class="line">–default-ulimit memlock=128849018880 </span><br><span class="line">–default-ulimit core=-1 </span><br><span class="line">–default-ulimit nproc=-1 </span><br><span class="line">–default-ulimit stack=-1</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>网络设置：</p>
+</blockquote>
+<p>–net：网络指定</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">docker容器网络选择：</span><br><span class="line"></span><br><span class="line">1. host模式： docker run 使用 --net=host指定</span><br><span class="line">docker使用的网络实际上和宿主机一样</span><br><span class="line"></span><br><span class="line">2. container模式：使用 --net=container:container_id/container_name</span><br><span class="line">多个容器使用共同的网络，看到的ip是一样的。</span><br><span class="line"></span><br><span class="line">3. none 模式: 使用 --net=none指定</span><br><span class="line">这种模式下，不会配置任何网络。</span><br><span class="line"></span><br><span class="line">4. bridge模式: 使用 --net=bridge指定</span><br><span class="line">默认模式，不会指定。此模式会为每个容器分配一个独立的network namespace</span><br></pre></td></tr></table></figure>
+<p>使用示例:</p>
+<p>启动镜像，指定端口映射:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker run --name rocketmq-tmp -p 98761:98761 --privileged --ulimit memlock=-1 --net=host -td rockemq-base1 /usr/sbin/init</span><br></pre></td></tr></table></figure>
+<p>启动一个镜像，映射目录:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker run -it -p 8070:8080 -v /root/software:/software --privileged=true  docker.io/centos /bin/bash</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-5-docker-exec-进入容器"><a href="#2-5-docker-exec-进入容器" class="headerlink" title="2.5 docker exec 进入容器"></a>2.5 docker exec 进入容器</h3><p>方式一：exec</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker exec -it kungfu-devel bash</span><br></pre></td></tr></table></figure>
+<p>方式二：attach</p>
+<p>注意：如果从这个stdin中exit，会导致容器的停止。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker attach cd24b1147c40</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> docker attach mycentos</span><br></pre></td></tr></table></figure>
+<h3 id="2-6-docker-commit-保存镜像"><a href="#2-6-docker-commit-保存镜像" class="headerlink" title="2.6 docker commit 保存镜像"></a>2.6 docker commit 保存镜像</h3><p>保存镜像：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker commit afcaf46e8305 rocketmq-cluster</span><br></pre></td></tr></table></figure></p>
+<p>查看镜像的详细信息：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker inspect centos-vim:afcaf46e8305</span><br></pre></td></tr></table></figure>
+<h3 id="2-6-docker-push-推送镜像到远端"><a href="#2-6-docker-push-推送镜像到远端" class="headerlink" title="2.6 docker push 推送镜像到远端"></a>2.6 docker push 推送镜像到远端</h3><p>标记与推送：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker tag docker.io/centos 10.29.139.47:5001/jiagou_registry/centos7</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> docker push 10.29.139.47:5001/jiagou_registry/centos7</span><br></pre></td></tr></table></figure></p>
+<p>需要先登录:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker login -u你的docker账号 -p你的docker密</span><br><span class="line"></span><br><span class="line">Login Succeeded</span><br></pre></td></tr></table></figure>
+<h3 id="2-7-docker-build-从dockerfile构建镜像"><a href="#2-7-docker-build-从dockerfile构建镜像" class="headerlink" title="2.7 docker build 从dockerfile构建镜像"></a>2.7 docker build 从dockerfile构建镜像</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker build -t image_name -f ./Dockerfile .</span><br></pre></td></tr></table></figure>
+<h2 id="3-使用Docker搭建RocketMQ集群"><a href="#3-使用Docker搭建RocketMQ集群" class="headerlink" title="3.使用Docker搭建RocketMQ集群"></a>3.使用Docker搭建RocketMQ集群</h2><h3 id="3-1-构建基础镜像-rocketmq-base"><a href="#3-1-构建基础镜像-rocketmq-base" class="headerlink" title="3.1 构建基础镜像 rocketmq:base"></a>3.1 构建基础镜像 rocketmq:base</h3><p>1.拉取基础镜像</p>
+<p>docker pull centos:latest</p>
+<p>docker tag docker.io/centos 10.29.139.47:5001/jiagou_registry/centos7</p>
+<p>docker tag 10.29.139.47:5001/jiagou_registry/centos7 centos7</p>
+<p>2.启动容器</p>
+<p>docker run –name rocketmq –privileged –ulimit memlock=-1 -v /root/soft:/data/soft –net=host -td centos7 /usr/sbin/init</p>
+<p>3.在容器中配置java,maven环境</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">JAVA_HOME=/opt/jdk1.8.0_191</span><br><span class="line">M2_HOME=/opt/apache-maven-3.5.2</span><br><span class="line">ROCKETMQ_HOME=/opt/apache-rocketmq</span><br></pre></td></tr></table></figure>
+<p>4.编译rocketmq代码,将编译过后的文件copy到/opt下，最终rocketmq的路径为：/opt/apache-rocketmq</p>
+<p>5.在/opt/apache-rocketmq/config/目录下,创建namesrv.conf配置文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> vim namesrv.conf</span><br><span class="line"></span><br><span class="line">listenPort=9877</span><br></pre></td></tr></table></figure>
+<p>6.修改.bashrc文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">vim ~/.bashrc</span><br><span class="line">.....</span><br><span class="line">if [ -f /etc/bashrc ]; then</span><br><span class="line">        . /etc/bashrc</span><br><span class="line">source /etc/profile</span><br><span class="line">fi</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
+<p>7.保存镜像</p>
+<p>在centos7的容器中，执行exit方法，退出容器</p>
+<p>查看刚才容器的id</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker ps -a</span><br></pre></td></tr></table></figure>
+<p>保存，</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker commit d4bd7510bdb2 rocketmq:base</span><br></pre></td></tr></table></figure>
+<h3 id="3-2-构建namesrv镜像-rocketmq-namesrv"><a href="#3-2-构建namesrv镜像-rocketmq-namesrv" class="headerlink" title="3.2 构建namesrv镜像 rocketmq:namesrv"></a>3.2 构建namesrv镜像 rocketmq:namesrv</h3><p>创建目录：/root/dockerfiles/rocketmq-namesrv,进入目录执行，</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> vim Dockerfile</span><br><span class="line"></span><br><span class="line">FROM rocketmq:base</span><br><span class="line"></span><br><span class="line">ENV JAVA_HOME=/opt/jdk1.8.0_191</span><br><span class="line">ENV M2_HOME=/opt/apache-maven-3.5.2</span><br><span class="line">ENV ROCKETMQ_HOME=/opt/apache-rocketmq</span><br><span class="line">ENV PATH=$PATH:$JAVA_HOME/bin:$M2_HOME/bin</span><br><span class="line">ENV CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</span><br><span class="line"></span><br><span class="line">CMD cd /opt/apache-rocketmq/ \</span><br><span class="line"> &amp;&amp; /opt/apache-rocketmq/bin/mqnamesrv -c /opt/apache-rocketmq/conf/namesrv.conf</span><br></pre></td></tr></table></figure>
+<p>在Dockerfile的目录下，执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker build -t rocketmq:namesrv -f ./Dockerfile .</span><br></pre></td></tr></table></figure>
+<h3 id="3-3-构建broker镜像-rocketmq-broker"><a href="#3-3-构建broker镜像-rocketmq-broker" class="headerlink" title="3.3 构建broker镜像 rocketmq:broker"></a>3.3 构建broker镜像 rocketmq:broker</h3><p>创建目录：/root/dockerfiles/rocketmq-broker,进入目录执行，</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> vim Dockerfile</span><br><span class="line"></span><br><span class="line">FROM rocketmq:base</span><br><span class="line"></span><br><span class="line">ENV JAVA_HOME=/opt/jdk1.8.0_191</span><br><span class="line">ENV M2_HOME=/opt/apache-maven-3.5.2</span><br><span class="line">ENV ROCKETMQ_HOME=/opt/apache-rocketmq</span><br><span class="line">ENV PATH=$PATH:$JAVA_HOME/bin:$M2_HOME/bin</span><br><span class="line">ENV CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</span><br><span class="line"></span><br><span class="line">CMD cd /opt/apache-rocketmq/ \</span><br><span class="line"> &amp;&amp; /opt/apache-rocketmq/bin/mqbroker -c /config/broker.conf</span><br></pre></td></tr></table></figure>
+<p>在Dockerfile的目录下，执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker build -t rocketmq:broker -f ./Dockerfile .</span><br></pre></td></tr></table></figure>
+<h3 id="3-4-启动namesrv"><a href="#3-4-启动namesrv" class="headerlink" title="3.4 启动namesrv"></a>3.4 启动namesrv</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker run -d -p 9877:9877 --name rmqnamesrv rocketmq:namesrv</span><br></pre></td></tr></table></figure>
+<h3 id="3-5-启动broker"><a href="#3-5-启动broker" class="headerlink" title="3.5 启动broker"></a>3.5 启动broker</h3><p>创建以下配置目录：</p>
+<p>/opt/mqconfig/broker-a-config/broker.conf</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">vim broker.conf</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>所属集群名字</span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>broker名字，注意此处不同的配置文件填写的不一样</span><br><span class="line">brokerName=broker-a</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>0表示Master，&gt;0表示Slave</span><br><span class="line">brokerId=0</span><br><span class="line"></span><br><span class="line">brokerIP1 = 10.29.183.66</span><br><span class="line"><span class="meta">#</span>nameServer地址，分号分割</span><br><span class="line">namesrvAddr = 10.29.183.66:9877</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>限制的消息大小</span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span>flushCommitLogLeastPages=4</span><br><span class="line"><span class="meta">#</span>flushConsumeQueueLeastPages=2</span><br><span class="line"><span class="meta">#</span>flushCommitLogThoroughInterval=10000</span><br><span class="line"><span class="meta">#</span>flushConsumeQueueThoroughInterval=60000</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>Broker 的角色</span><br><span class="line"><span class="meta">#</span>- ASYNC_MASTER 异步复制Master</span><br><span class="line"><span class="meta">#</span>- SYNC_MASTER 同步双写Master</span><br><span class="line"><span class="meta">#</span>- SLAVE</span><br><span class="line">brokerRole=ASYNC_MASTER</span><br><span class="line"><span class="meta">#</span>刷盘方式</span><br><span class="line"><span class="meta">#</span>- ASYNC_FLUSH 异步刷盘</span><br><span class="line"><span class="meta">#</span>- SYNC_FLUSH 同步刷盘</span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>Broker 对外服务的监听端口</span><br><span class="line">listenPort=20911</span><br><span class="line"></span><br><span class="line">============持久化配置=================</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>删除文件时间点，默认凌晨 4点</span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span>文件保留时间，默认 48 小时</span><br><span class="line">fileReservedTime=120</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>commitLog每个文件的大小默认1G</span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span>ConsumeQueue每个文件默认存30W条，根据业务情况调整</span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span>destroyMapedFileIntervalForcibly=120000</span><br><span class="line"><span class="meta">#</span>redeleteHangedFileInterval=120000</span><br><span class="line"><span class="meta">#</span>检测物理文件磁盘空间</span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span>存储路径</span><br><span class="line">storePathRootDir=/data/rocketmq/store</span><br><span class="line"><span class="meta">#</span>commitLog 存储路径</span><br><span class="line">storePathCommitLog=/data/rocketmq/store/commitlog</span><br><span class="line"><span class="meta">#</span>消费队列存储路径存储路径</span><br><span class="line">storePathConsumeQueue=/data/rocketmq/store/consumequeue</span><br><span class="line"><span class="meta">#</span>消息索引存储路径</span><br><span class="line">storePathIndex=/data/rocketmq/store/index</span><br><span class="line"><span class="meta">#</span>checkpoint 文件存储路径</span><br><span class="line">storeCheckpoint=/data/rocketmq/store/checkpoint</span><br><span class="line"><span class="meta">#</span>abort 文件存储路径</span><br><span class="line">abortFile=/data/rocketmq/store/abort</span><br></pre></td></tr></table></figure>
+<p>/opt/mqconfig/broker-a-s-config/broker.conf</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">vim broker.conf</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>所属集群名字</span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>broker名字，注意此处不同的配置文件填写的不一样</span><br><span class="line">brokerName=broker-a</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>0表示Master，&gt;0表示Slave</span><br><span class="line">brokerId=1</span><br><span class="line"></span><br><span class="line">brokerIP1 = 10.29.183.66</span><br><span class="line"><span class="meta">#</span>nameServer地址，分号分割</span><br><span class="line">namesrvAddr = 10.29.183.66:9877</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>限制的消息大小</span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span>flushCommitLogLeastPages=4</span><br><span class="line"><span class="meta">#</span>flushConsumeQueueLeastPages=2</span><br><span class="line"><span class="meta">#</span>flushCommitLogThoroughInterval=10000</span><br><span class="line"><span class="meta">#</span>flushConsumeQueueThoroughInterval=60000</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>Broker 的角色</span><br><span class="line"><span class="meta">#</span>- ASYNC_MASTER 异步复制Master</span><br><span class="line"><span class="meta">#</span>- SYNC_MASTER 同步双写Master</span><br><span class="line"><span class="meta">#</span>- SLAVE</span><br><span class="line">brokerRole= SLAVE</span><br><span class="line"><span class="meta">#</span>刷盘方式</span><br><span class="line"><span class="meta">#</span>- ASYNC_FLUSH 异步刷盘</span><br><span class="line"><span class="meta">#</span>- SYNC_FLUSH 同步刷盘</span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>Broker 对外服务的监听端口</span><br><span class="line">listenPort=30911</span><br><span class="line"></span><br><span class="line">============持久化配置=================</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>删除文件时间点，默认凌晨 4点</span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span>文件保留时间，默认 48 小时</span><br><span class="line">fileReservedTime=120</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>commitLog每个文件的大小默认1G</span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span>ConsumeQueue每个文件默认存30W条，根据业务情况调整</span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span>destroyMapedFileIntervalForcibly=120000</span><br><span class="line"><span class="meta">#</span>redeleteHangedFileInterval=120000</span><br><span class="line"><span class="meta">#</span>检测物理文件磁盘空间</span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span>存储路径</span><br><span class="line">storePathRootDir=/data/rocketmq/store</span><br><span class="line"><span class="meta">#</span>commitLog 存储路径</span><br><span class="line">storePathCommitLog=/data/rocketmq/store/commitlog</span><br><span class="line"><span class="meta">#</span>消费队列存储路径存储路径</span><br><span class="line">storePathConsumeQueue=/data/rocketmq/store/consumequeue</span><br><span class="line"><span class="meta">#</span>消息索引存储路径</span><br><span class="line">storePathIndex=/data/rocketmq/store/index</span><br><span class="line"><span class="meta">#</span>checkpoint 文件存储路径</span><br><span class="line">storeCheckpoint=/data/rocketmq/store/checkpoint</span><br><span class="line"><span class="meta">#</span>abort 文件存储路径</span><br><span class="line">abortFile=/data/rocketmq/store/abort</span><br></pre></td></tr></table></figure>
+<p>/opt/mqconfig/broker-b-config/broker.conf</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">vim broker.conf</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>所属集群名字</span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>broker名字，注意此处不同的配置文件填写的不一样</span><br><span class="line">brokerName=broker-b</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>0表示Master，&gt;0表示Slave</span><br><span class="line">brokerId=0</span><br><span class="line"></span><br><span class="line">brokerIP1 = 10.29.183.66</span><br><span class="line"><span class="meta">#</span>nameServer地址，分号分割</span><br><span class="line">namesrvAddr = 10.29.183.66:9877</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>限制的消息大小</span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span>flushCommitLogLeastPages=4</span><br><span class="line"><span class="meta">#</span>flushConsumeQueueLeastPages=2</span><br><span class="line"><span class="meta">#</span>flushCommitLogThoroughInterval=10000</span><br><span class="line"><span class="meta">#</span>flushConsumeQueueThoroughInterval=60000</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>Broker 的角色</span><br><span class="line"><span class="meta">#</span>- ASYNC_MASTER 异步复制Master</span><br><span class="line"><span class="meta">#</span>- SYNC_MASTER 同步双写Master</span><br><span class="line"><span class="meta">#</span>- SLAVE</span><br><span class="line">brokerRole=ASYNC_MASTER</span><br><span class="line"><span class="meta">#</span>刷盘方式</span><br><span class="line"><span class="meta">#</span>- ASYNC_FLUSH 异步刷盘</span><br><span class="line"><span class="meta">#</span>- SYNC_FLUSH 同步刷盘</span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>Broker 对外服务的监听端口</span><br><span class="line">listenPort=40911</span><br><span class="line"></span><br><span class="line">============持久化配置=================</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>删除文件时间点，默认凌晨 4点</span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span>文件保留时间，默认 48 小时</span><br><span class="line">fileReservedTime=120</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>commitLog每个文件的大小默认1G</span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span>ConsumeQueue每个文件默认存30W条，根据业务情况调整</span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span>destroyMapedFileIntervalForcibly=120000</span><br><span class="line"><span class="meta">#</span>redeleteHangedFileInterval=120000</span><br><span class="line"><span class="meta">#</span>检测物理文件磁盘空间</span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span>存储路径</span><br><span class="line">storePathRootDir=/data/rocketmq/store</span><br><span class="line"><span class="meta">#</span>commitLog 存储路径</span><br><span class="line">storePathCommitLog=/data/rocketmq/store/commitlog</span><br><span class="line"><span class="meta">#</span>消费队列存储路径存储路径</span><br><span class="line">storePathConsumeQueue=/data/rocketmq/store/consumequeue</span><br><span class="line"><span class="meta">#</span>消息索引存储路径</span><br><span class="line">storePathIndex=/data/rocketmq/store/index</span><br><span class="line"><span class="meta">#</span>checkpoint 文件存储路径</span><br><span class="line">storeCheckpoint=/data/rocketmq/store/checkpoint</span><br><span class="line"><span class="meta">#</span>abort 文件存储路径</span><br><span class="line">abortFile=/data/rocketmq/store/abort</span><br></pre></td></tr></table></figure>
+<p>/opt/mqconfig/broker-b-s-config/broker.conf</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">vim broker.conf</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>所属集群名字</span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>broker名字，注意此处不同的配置文件填写的不一样</span><br><span class="line">brokerName=broker-b</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>0表示Master，&gt;0表示Slave</span><br><span class="line">brokerId=1</span><br><span class="line"></span><br><span class="line">brokerIP1 = 10.29.183.66</span><br><span class="line"><span class="meta">#</span>nameServer地址，分号分割</span><br><span class="line">namesrvAddr = 10.29.183.66:9877</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>限制的消息大小</span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span>flushCommitLogLeastPages=4</span><br><span class="line"><span class="meta">#</span>flushConsumeQueueLeastPages=2</span><br><span class="line"><span class="meta">#</span>flushCommitLogThoroughInterval=10000</span><br><span class="line"><span class="meta">#</span>flushConsumeQueueThoroughInterval=60000</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>Broker 的角色</span><br><span class="line"><span class="meta">#</span>- ASYNC_MASTER 异步复制Master</span><br><span class="line"><span class="meta">#</span>- SYNC_MASTER 同步双写Master</span><br><span class="line"><span class="meta">#</span>- SLAVE</span><br><span class="line">brokerRole= SLAVE</span><br><span class="line"><span class="meta">#</span>刷盘方式</span><br><span class="line"><span class="meta">#</span>- ASYNC_FLUSH 异步刷盘</span><br><span class="line"><span class="meta">#</span>- SYNC_FLUSH 同步刷盘</span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>Broker 对外服务的监听端口</span><br><span class="line">listenPort=50911</span><br><span class="line"></span><br><span class="line">============持久化配置=================</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>删除文件时间点，默认凌晨 4点</span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span>文件保留时间，默认 48 小时</span><br><span class="line">fileReservedTime=120</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>commitLog每个文件的大小默认1G</span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span>ConsumeQueue每个文件默认存30W条，根据业务情况调整</span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span>destroyMapedFileIntervalForcibly=120000</span><br><span class="line"><span class="meta">#</span>redeleteHangedFileInterval=120000</span><br><span class="line"><span class="meta">#</span>检测物理文件磁盘空间</span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span>存储路径</span><br><span class="line">storePathRootDir=/data/rocketmq/store</span><br><span class="line"><span class="meta">#</span>commitLog 存储路径</span><br><span class="line">storePathCommitLog=/data/rocketmq/store/commitlog</span><br><span class="line"><span class="meta">#</span>消费队列存储路径存储路径</span><br><span class="line">storePathConsumeQueue=/data/rocketmq/store/consumequeue</span><br><span class="line"><span class="meta">#</span>消息索引存储路径</span><br><span class="line">storePathIndex=/data/rocketmq/store/index</span><br><span class="line"><span class="meta">#</span>checkpoint 文件存储路径</span><br><span class="line">storeCheckpoint=/data/rocketmq/store/checkpoint</span><br><span class="line"><span class="meta">#</span>abort 文件存储路径</span><br><span class="line">abortFile=/data/rocketmq/store/abort</span><br></pre></td></tr></table></figure>
+<p>启动master-a:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker run -d -p 20911:20911 -p 20909:20909 -v=/opt/mqconfig/broker-a-config:/config --name rmqbroker-a rocketmq:broker</span><br></pre></td></tr></table></figure></p>
+<p>启动slave-a:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker run -d -p 30911:30911 -p 30909:30909 -v=/opt/mqconfig/broker-a-s-config:/config --name rmqbroker-a-s rocketmq:broker</span><br></pre></td></tr></table></figure></p>
+<p>启动master-b:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker run -d -p 40911:40911 -p 40909:40909 -v=/opt/mqconfig/broker-b-config:/config --name rmqbroker-b rocketmq:broker</span><br></pre></td></tr></table></figure></p>
+<p>启动slave-b:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker run -d -p 50911:50911 -p 50909:50909 -v=/opt/mqconfig/broker-b-s-config:/config --name rmqbroker-b-s rocketmq:broker</span><br></pre></td></tr></table></figure></p>
+<h3 id="3-6-启动console"><a href="#3-6-启动console" class="headerlink" title="3.6 启动console"></a>3.6 启动console</h3><p>拉取镜像：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker pull styletang/rocketmq-console-ng</span><br></pre></td></tr></table></figure>
+<p>启动容器，指定–link,-p</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker run -d -e "JAVA_OPTS=-Drocketmq.namesrv.addr=rmqnamesrv:9877 -Dcom.rocketmq.sendMessageWithVIPChannel=false" --link rmqnamesrv:rmqnamesrv -p 8080:8080 --name rmqconsole -t docker.io/styletang/rocketmq-console-ng</span><br></pre></td></tr></table></figure>
+<h3 id="3-7-检查服务状态"><a href="#3-7-检查服务状态" class="headerlink" title="3.7 检查服务状态"></a>3.7 检查服务状态</h3><p>查看容器状态:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> docker ps -a</span><br></pre></td></tr></table></figure>
+<p>浏览器访问：</p>
+<p><a href="http://10.29.183.66:8080/" target="_blank" rel="noopener">http://10.29.183.66:8080/</a></p>
+<p><img src="/images/rocketmq/1.png" alt="1"></p>
+<p><img src="/images/rocketmq/2.png" alt="2"></p>
+<p><img src="/images/rocketmq/3.png" alt="3"></p>
+<h2 id="4-docker瘦身"><a href="#4-docker瘦身" class="headerlink" title="4.docker瘦身"></a>4.docker瘦身</h2><p>参考网址：</p>
+<p><a href="http://dockone.io/article/8174" target="_blank" rel="noopener">http://dockone.io/article/8174</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/MQ/" rel="tag"># MQ</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/11/29/2017-11-29-爬虫框架一二三/" rel="next" title="爬虫框架一二三">
+                <i class="fa fa-chevron-left"></i> 爬虫框架一二三
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/11/29/2018-11-29-mongoDB文档模式设计/" rel="prev" title="mongoDB文档模式设计">
+                mongoDB文档模式设计 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">lvyafei</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">92</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">40</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">54</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0-基础准备"><span class="nav-text">0.基础准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-RocketMQ-集群环境搭建"><span class="nav-text">1.RocketMQ 集群环境搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-RocketMQ编译"><span class="nav-text">1.1 RocketMQ编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-更改默认的JVM配置"><span class="nav-text">1.2 更改默认的JVM配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-broker配置修改"><span class="nav-text">1.3 broker配置修改</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-启动namesrv-broker"><span class="nav-text">1.4 启动namesrv,broker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-停止namesrv-broker"><span class="nav-text">1.5 停止namesrv,broker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-6-测试Producer-Consumer"><span class="nav-text">1.6 测试Producer,Consumer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-7-mqadmin功能一览"><span class="nav-text">1.7 mqadmin功能一览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-8-broker-conf主要配置"><span class="nav-text">1.8 broker.conf主要配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Docker使用指南"><span class="nav-text">2.Docker使用指南</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-docker常用命令"><span class="nav-text">2.1 docker常用命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-编辑docker仓库地址"><span class="nav-text">2.2 编辑docker仓库地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-获取基础镜像"><span class="nav-text">2.3 获取基础镜像</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-docker-run-启动容器"><span class="nav-text">2.4 docker run 启动容器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-docker-exec-进入容器"><span class="nav-text">2.5 docker exec 进入容器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-docker-commit-保存镜像"><span class="nav-text">2.6 docker commit 保存镜像</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-docker-push-推送镜像到远端"><span class="nav-text">2.6 docker push 推送镜像到远端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-7-docker-build-从dockerfile构建镜像"><span class="nav-text">2.7 docker build 从dockerfile构建镜像</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-使用Docker搭建RocketMQ集群"><span class="nav-text">3.使用Docker搭建RocketMQ集群</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-构建基础镜像-rocketmq-base"><span class="nav-text">3.1 构建基础镜像 rocketmq:base</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-构建namesrv镜像-rocketmq-namesrv"><span class="nav-text">3.2 构建namesrv镜像 rocketmq:namesrv</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-构建broker镜像-rocketmq-broker"><span class="nav-text">3.3 构建broker镜像 rocketmq:broker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-启动namesrv"><span class="nav-text">3.4 启动namesrv</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-启动broker"><span class="nav-text">3.5 启动broker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-启动console"><span class="nav-text">3.6 启动console</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-检查服务状态"><span class="nav-text">3.7 检查服务状态</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-docker瘦身"><span class="nav-text">4.docker瘦身</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lvyafei</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

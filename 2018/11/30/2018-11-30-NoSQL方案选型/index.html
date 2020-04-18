@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="NoSQL,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="1.关系型数据库缺点1.1.大数据场景下 I/O 较高因为数据是按 行存储，即使只针对其中 某一列 进行运算，关系型数据库也会对 整行数据 进行扫描，从存储设备中 读入内存，导致 I/O 较高">
+<meta name="keywords" content="NoSQL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NoSQL方案选型">
+<meta property="og:url" content="http://lvyafei.github.io/2018/11/30/2018-11-30-NoSQL方案选型/index.html">
+<meta property="og:site_name" content="FeSa">
+<meta property="og:description" content="1.关系型数据库缺点1.1.大数据场景下 I/O 较高因为数据是按 行存储，即使只针对其中 某一列 进行运算，关系型数据库也会对 整行数据 进行扫描，从存储设备中 读入内存，导致 I/O 较高">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-04-18T10:31:35.032Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="NoSQL方案选型">
+<meta name="twitter:description" content="1.关系型数据库缺点1.1.大数据场景下 I/O 较高因为数据是按 行存储，即使只针对其中 某一列 进行运算，关系型数据库也会对 整行数据 进行扫描，从存储设备中 读入内存，导致 I/O 较高">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://lvyafei.github.io/2018/11/30/2018-11-30-NoSQL方案选型/">
+
+
+
+
+
+  <title>NoSQL方案选型 | FeSa</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">FeSa</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">develop & design</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="Searching..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://lvyafei.github.io/2018/11/30/2018-11-30-NoSQL方案选型/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lvyafei">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="FeSa">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">NoSQL方案选型</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-11-30T00:00:00+00:00">
+                2018-11-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">中间件</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="1-关系型数据库缺点"><a href="#1-关系型数据库缺点" class="headerlink" title="1.关系型数据库缺点"></a>1.关系型数据库缺点</h2><h3 id="1-1-大数据场景下-I-O-较高"><a href="#1-1-大数据场景下-I-O-较高" class="headerlink" title="1.1.大数据场景下 I/O 较高"></a>1.1.大数据场景下 I/O 较高</h3><p>因为数据是按 行存储，即使只针对其中 某一列 进行运算，关系型数据库也会对 整行数据 进行扫描，从存储设备中 读入内存，导致 I/O 较高<br><a id="more"></a></p>
+<h3 id="1-2-结构化存储-不够灵活"><a href="#1-2-结构化存储-不够灵活" class="headerlink" title="1.2.结构化存储 不够灵活"></a>1.2.结构化存储 不够灵活</h3><p>存储的是 行记录，无法存储 灵活的数据结构</p>
+<h3 id="1-3-表结构-schema-扩展不方便"><a href="#1-3-表结构-schema-扩展不方便" class="headerlink" title="1.3.表结构 schema 扩展不方便"></a>1.3.表结构 schema 扩展不方便</h3><p>如要需要修改 表结构，需要执行执行 DDL（data definition language）语句修改，修改期间会导致 锁表，部分服务不可用</p>
+<h3 id="1-4-全文搜索-功能较弱"><a href="#1-4-全文搜索-功能较弱" class="headerlink" title="1.4.全文搜索 功能较弱"></a>1.4.全文搜索 功能较弱</h3><p>关系型数据库只能够进行 子字符串 的 匹配查询，当表的数据逐渐变大的时候，即使在有 索引 的情况下，like 扫表查询的匹配会 非常慢</p>
+<h3 id="1-5-难以-存储-和-处理-复杂-关系型数据"><a href="#1-5-难以-存储-和-处理-复杂-关系型数据" class="headerlink" title="1.5.难以 存储 和 处理 复杂 关系型数据"></a>1.5.难以 存储 和 处理 复杂 关系型数据</h3><p>传统的关系数据库，并不擅长处理 数据点之间 的关系</p>
+<p>NoSQL 在许多方面性能大大优于 非关系型 数据库的同时，往往也伴随一些特性的缺失。比较常见的是 事务功能 的缺失。</p>
+<p>针对传统 关系型数据库 的不足，下面介绍常见的 5 大类 NoSQL 解决方案：</p>
+<h2 id="2-NoSQL方案类型"><a href="#2-NoSQL方案类型" class="headerlink" title="2.NoSQL方案类型"></a>2.NoSQL方案类型</h2><h3 id="2-1-列式数据库"><a href="#2-1-列式数据库" class="headerlink" title="2.1 列式数据库"></a>2.1 列式数据库</h3><p>列式数据库 是以 列相关存储架构 进行数据存储的数据库，主要适合于 批量数据处理 和 即时查询。相对应的是 行式数据库，数据以 行相关的存储架构 进行空间分配，主要适合于 小批量 的 数据处理，常用于 联机事务型数据处理。</p>
+<p><strong>基于列式数据库的 列存储特性，可以解决某些特定场景下 关系型数据库 高 I/O 的问题。</strong></p>
+<p><strong>HBase</strong></p>
+<p>运行于 HDFS 文件系统之上，为 Hadoop 提供类似于 BigTable 规模的服务。因此，它可以 容错地 存储 海量稀疏 的数据</p>
+<p><strong>BigTable</strong></p>
+<p>基于 Google 文件系统（Google File System，GFS）的数据存储系统，用于存储 大规模结构化数据，适用于云计算</p>
+<font color="red"><strong>优点：</strong></font>
+
+<p>1.高效的储存空间利用率</p>
+<p>2.查询效率高</p>
+<p>3.适合做聚合操作</p>
+<p>4.适合大量的数据而不是小数据</p>
+<font color="blue"><strong>缺点：</strong></font>
+
+<p>1.不适合扫描 小量数据</p>
+<p>2.不适合 随机的更新</p>
+<p>3.不适合做含有删除和更新的 实时操作</p>
+<p>4.单行数据 支持 ACID 的 事务操作，多行数据 的 事务操作，不支持事务的 正常回滚，支持 （Isolation）隔离性、(Durability）持久性，不能保证 (Atomicity）原子性、（Consistency）一致性</p>
+<h3 id="2-2-K-V数据库"><a href="#2-2-K-V数据库" class="headerlink" title="2.2 K-V数据库"></a>2.2 K-V数据库</h3><p>使用 键值（key-value）存储的数据库，其数据按照 键值对 的形式进行 组织、索引 和 存储。</p>
+<p><strong>KV 存储非常适合不涉及过多 数据关系 业务的数据。它能够有效减少 读写磁盘 的次数，比 SQL 数据库存储 拥有更好的 读写性能，能够解决 关系型数据库 无法存储 数据结构 的问题。</strong></p>
+<p><strong>Redis</strong></p>
+<p>Redis 是一个使用 ANSI C 编写的 开源、支持网络、基于内存、可选持久性 的 键值对存储 数据库。Redis 是目前最流行的 键值对存储 数据库之一</p>
+<p><strong>Cassandra</strong></p>
+<p>Apache Cassandra（社区内一般简称为 C*）是一套 开源的分布式 NoSQL 数据库系统。它最初由 Facebook 开发，用于储存 收件箱 等简单格式数据，集 Google BigTable 的 数据模型 与 Amazon Dynamo 的 完全分布式 架构于一身。Cassandra 是一种流行的 分布式结构化 数据存储方案</p>
+<p><strong>Memcached</strong></p>
+<p>Memcached 是一个 开放源代码、高性能、分配的 内存对象缓存系统。用于加速动态 web 应用程序，减轻关系型数据库负载。它可以应对 任意多个连接，使用 非阻塞的网络 IO。由于它的工作机制是在内存中开辟一块空间，然后建立一个 Hash 表，Memcached 自管理这些 Hash 表。</p>
+<p><strong>LevelDB</strong></p>
+<p>LevelDB 是一个由 Google 所研发的 键／值对（Key/Value Pair）嵌入式 数据库管理系统 编程库，以开源的 BSD 许可证发布。</p>
+<font color="red">**优点：</font>
+
+<p>1.性能极高</p>
+<p>2.丰富的数据类型</p>
+<p>3.丰富的特性</p>
+<font color="blue">**缺点：</font>
+
+<p>事务 不能支持 原子性 和 持久性（A 和 D），只支持 隔离性 和 一致性（I 和 C）。</p>
+<h3 id="2-3-文档型数据库"><a href="#2-3-文档型数据库" class="headerlink" title="2.3 文档型数据库"></a>2.3 文档型数据库</h3><p>文档数据库 用于将 半结构化数据 存储为 文档 的一种数据库。文档数据库通常以 JSON 或 XML 格式存储数据。</p>
+<p><strong>由于文档数据库的 no-schema 特性，可以 存储 和 读取 任意数据。</strong></p>
+<p><strong>MongoDB</strong></p>
+<p>MongoDB 是一个基于 分布式文件存储 的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的 高性能 数据存储解决方案。MongoDB 是一个介于 关系数据库 和 非关系数据库 之间的产品，是非关系数据库当中功能 最丰富，最像关系数据库的 NoSQL。</p>
+<p><strong>CouchDB</strong></p>
+<p>CouchDB 是用 Erlang 开发的 面向文档 的 分布式 数据库，用于存储 半结构化 的数据，比较类似 lucene 的 index 结构。CouchDB 支持 RESTful API，它使用 JSON 作为 存储格式，JavaScript 作为 查询语言，MapReduce 和 HTTP 作为 API 的 NoSQL 数据库。其中一个显著的功能就是 多主复制 功能。除此之外，CouchDB 构建在强大的 B- 树储存引擎 之上。</p>
+<font color="red">**优点：</font>
+
+<p>1.新增字段简单不需要像关系型数据库一样，先执行 DDL 语句 修改表结构，程序代码 直接读写 即可。</p>
+<p>2.容易兼容 历史数据。对于历史数据，即使没有新增的字段，也不会导致错误，只会返回 空值，此时 代码兼容处理 即可。</p>
+<p>3.容易存储复杂数据。JSON 是一种强大的 描述语言，能够描述复杂的 数据结构</p>
+<font color="blue">**缺点：</font>
+
+<p>1.Atomicity（原子性）：仅支持 单行/文档级原子性，不支持 多行、多文档、多语句原子性。</p>
+<p>2.Isolation（隔离性）：隔离级别仅支持 已提交读（Read committed）级别，可能导致 不可重复读，幻读 的问题。</p>
+<p>3.不支持 复杂查询。例如 join 查询，如果需要 join 查询，需要 多次操作数据库。</p>
+<h3 id="2-4-全文搜索引擎"><a href="#2-4-全文搜索引擎" class="headerlink" title="2.4 全文搜索引擎"></a>2.4 全文搜索引擎</h3><p>全文搜索引擎 的技术原理称为 倒排索引（inverted index），是一种 索引方法，其基本原理是建立 单词 到 文档 的索引。与之相对是，是 正排索引，其基本原理是建立 文档 到 单词 的索引。</p>
+<p><strong>全文搜索引擎的出现，正是解决关系型数据库 全文搜索较弱 的问题。</strong></p>
+<p><strong>ElasticSearch</strong></p>
+<p>ElasticSearch 是一个基于 Apache Lucene 的 搜索引擎。它提供了一个 分布式，多租户 对全文搜索引擎。ElasticSearch 是用 Java 开发的，对外提供 RESTful Web 接口。根据 DB-Engines 排名，ElasticSearch 是最受欢迎的 企业搜索引擎。</p>
+<p><strong>Solr</strong></p>
+<p>Solr 是 Apache Lucene 项目的 开源企业搜索平台。其主要功能包括 全文检索、命中标示、分面搜索、动态聚类、数据库集成，以及 富文本（比如 Word、PDF）处理等等。Solr 是高度 可扩展 的，并提供了 分布式搜索 和 索引复制</p>
+<font color="red">**优点：</font>
+
+<p>1.查询效率高，适用于对 海量数据 进行 近实时 的处理。</p>
+<p>2.可扩展性</p>
+<p>3.基于 集群 环境可以方便 横向扩展，可以承载 PB 级的数据。</p>
+<p>4.支持 高可用，ElasticSearch 集群弹性灵活，可以发现新的或失败的节点，重组 和 重新平衡 数据，确保数据是 安全 和 可访问的</p>
+<font color="blue">**缺点：</font>
+
+<p>1.事务的 ACID 支持不足，单一文档 的数据是支持 ACID 的。对于 多个文档 的 事务操作，不支持事务的 正常回滚。支持（Isolation）隔离性（基于 乐观锁机制）和（Durability）持久性，不支持（Atomicity）原子性，（Consistency）一致性。</p>
+<p>2.对类似数据库中，通过 外键 进行 多表关联的复杂操作支持较弱。</p>
+<p>3.读写 有一定 延时，写入的数据，最快 1s 中能被检索到。</p>
+<p>4.更新 性能较低，底层实现是 先删数据，再 插入新数据。</p>
+<p>5.内存占用大，因为 Lucene 将 索引部分 加载到 内存 中。</p>
+<h3 id="2-5-图形数据库"><a href="#2-5-图形数据库" class="headerlink" title="2.5 图形数据库"></a>2.5 图形数据库</h3><p>图形数据库 应用 图形理论 存储 实体 之间的 关系信息。最常见例子就是 社会网络中人与人之间的关系。关系型数据库 用于存储这种 关系型数据 的效果并不好，其查询 复杂、缓慢、超出预期。</p>
+<p><strong>图形数据库 的独特设计弥补了这个缺陷，解决 关系型 数据库 存储 和 处理复杂关系型数据 功能较弱的问题。</strong></p>
+<p><strong>Neo4j</strong></p>
+<p>Neo4j 是一个 高性能的，NOSQL 图形数据库，它将 结构化数据 存储在 “图形网络上” 而不是 “表中”。它是一个 嵌入式的、基于磁盘的、具备完全的 事务特性 的 Java 持久化引擎。Neo4j 也可以被看作是一个 高性能的图引擎。程序员工作在一个 面向对象的、灵活的网络结构 下而不是 严格、静态 的 表中。</p>
+<p><strong>ArangoDB</strong></p>
+<p>ArangoDB 是一个 原生多模型 数据库系统。数据库系统支持 三个 重要的 数据模型（键/值，文档，图形）。ArangoDB 包含一个 数据库核心 和 统一查询语言 AQL（ArangoDB 查询语言）。查询语言是 声明性的，允许在 单个查询 中 组合 不同的 数据访问模式。ArangoDB 是一个 NoSQL 数据库系统，但 AQL 在很多方面与 SQL 都类似。</p>
+<font color="red">**优点：</font>
+
+<p>1.高性能表现</p>
+<p>2.设计的灵活性</p>
+<p>3.开发的敏捷性</p>
+<p>4.完全支持ACID</p>
+<font color="blue">**缺点：</font>
+
+<p>1.节点，关系 和它们的 属性 的数量被 限制。</p>
+<p>不支持 拆分。</p>
+<h2 id="3-关系数据库-or-NoSQL"><a href="#3-关系数据库-or-NoSQL" class="headerlink" title="3.关系数据库 or NoSQL"></a>3.关系数据库 or NoSQL</h2><p>关于 关系型数据库 和 NoSQL 数据库 的选型，往往需要考虑几个指标：数据量、并发量、实时性、一致性要求、读写分布、数据类型、安全性、运维成本。</p>
+<table>
+<thead>
+<tr>
+<th>系统类型</th>
+<th>数据库选型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>企业内部管理系统</td>
+<td>例如运营系统，数据量少，并发量小，首选考虑 关系型数据库</td>
+</tr>
+<tr>
+<td>互联网大流量系统</td>
+<td>例如电商单品页，后台考虑选 关系型数据库，前台考虑选 内存型数据库</td>
+</tr>
+<tr>
+<td>日志型系统</td>
+<td>原始数据 考虑选 列式数据库，日志搜索 考虑选 倒排索引</td>
+</tr>
+<tr>
+<td>搜索型系统</td>
+<td>例如站内搜索，非通用搜索，商品搜索，后台考虑选 关系型数据库，前台考虑选 倒排索引</td>
+</tr>
+<tr>
+<td>事务型系统</td>
+<td>例如库存管理，交易，记账，考虑选 关系型数据库 + 缓存数据库 + 一致性型协议</td>
+</tr>
+<tr>
+<td>离线计算</td>
+<td>例如大量数据分析，考虑选 列式数据库 或者 关系型数据库 都可以</td>
+</tr>
+<tr>
+<td>实时计算</td>
+<td>例如实时监控，可以考虑选 内存型数据库 或者 列式数据库</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-参考资料"><a href="#4-参考资料" class="headerlink" title="4.参考资料"></a>4.参考资料</h2><p>参考：<a href="https://blog.csdn.net/baidu_22254181/article/details/82594116" target="_blank" rel="noopener">https://blog.csdn.net/baidu_22254181/article/details/82594116</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/NoSQL/" rel="tag"># NoSQL</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/30/2018-11-30-mongoDB架构与集群/" rel="next" title="mongoDB架构与集群">
+                <i class="fa fa-chevron-left"></i> mongoDB架构与集群
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/01/2018-12-01-MySQL分库分表方案选型/" rel="prev" title="MySQL分库分表方案选型">
+                MySQL分库分表方案选型 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">lvyafei</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">92</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">40</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">54</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-关系型数据库缺点"><span class="nav-text">1.关系型数据库缺点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-大数据场景下-I-O-较高"><span class="nav-text">1.1.大数据场景下 I/O 较高</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-结构化存储-不够灵活"><span class="nav-text">1.2.结构化存储 不够灵活</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-表结构-schema-扩展不方便"><span class="nav-text">1.3.表结构 schema 扩展不方便</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-全文搜索-功能较弱"><span class="nav-text">1.4.全文搜索 功能较弱</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-难以-存储-和-处理-复杂-关系型数据"><span class="nav-text">1.5.难以 存储 和 处理 复杂 关系型数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-NoSQL方案类型"><span class="nav-text">2.NoSQL方案类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-列式数据库"><span class="nav-text">2.1 列式数据库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-K-V数据库"><span class="nav-text">2.2 K-V数据库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-文档型数据库"><span class="nav-text">2.3 文档型数据库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-全文搜索引擎"><span class="nav-text">2.4 全文搜索引擎</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-图形数据库"><span class="nav-text">2.5 图形数据库</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-关系数据库-or-NoSQL"><span class="nav-text">3.关系数据库 or NoSQL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-参考资料"><span class="nav-text">4.参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lvyafei</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
