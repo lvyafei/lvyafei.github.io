@@ -8,9 +8,9 @@ branches:
     - blog-source
 
 # 设置缓存文件
-cache:
-  directories:
-    - node_modules
+#cache:
+#  directories:
+#    - node_modules
 
 #在构建之前安装hexo环境和主题，这里的主题就是原来修改过的主题，我将其托管到另一个github仓库，直接clone就行，否则每次都是新的主题，要重新设置。
 before_install:
