@@ -16,12 +16,6 @@ my blog sites source
 # npm install -g hexo-cli --save
 ```
 
-安装hexo-pdf插件
-
-```
-# npm install --save hexo-pdf
-```
-
 ## 2.初始化hexo项目
 
 ```
@@ -50,4 +44,18 @@ my blog sites source
 
 ```
 # npm install
+```
+
+## 7.集成travis-ci
+
+地址：https://travis-ci.com/lvyafei
+
+需要在项目中添加".travis.yml"文件，配置CICD策略
+
+项目中新增插件,需要在.travis.yml文件中的"before_install:"节点下添加内容，如添加hexo-pdf插件
+
+```
+before_install:
+  - npm install -g hexo-cli
+  - npm install -g hexo-pdf
 ```
