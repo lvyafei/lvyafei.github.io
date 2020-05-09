@@ -41,9 +41,11 @@ archetype:crawl 在一个指定的Maven库中查找可以的模板，并更新�
 
 ## 3.在Idea中添加Archetype
 
+```
 <groupId>zts.intelli.app</groupId>
 <artifactId>zts-intelli-app-parent-archetype</artifactId>
 <version>1.16.2-SNAPSHOT</version>
+```
 
 ## 4.使用Archetype创建项目骨架
 
