@@ -210,6 +210,8 @@ SELECT * FROM t_user WHERE id = '1' and id = '2'
 
 ## 3.实例分析
 
+### 3.1 实例一
+
 ![22](/images/mysql_explain/22.png)
 
 执行顺序1：select_type为UNION，说明第四个select是UNION里的第二个select，最先执行【select name,id from t2】
@@ -221,6 +223,51 @@ SELECT * FROM t_user WHERE id = '1' and id = '2'
 执行顺序4：id列为1，表示是UNION里的第一个select，select_type列的primary表示该查询为外层查询，table列被标记为<derived3>,表示查询结果来自一个衍生表，其中derived3中的3代表该查询衍生自第三个select查询，即id为3的select。【select d1.name …..】
 
 执行顺序5：代表从UNION的临时表中读取行的阶段，table列的< union1,4 >表示用第一个和第四个select的结果进行UNION操作。【两个结果union操作】
+
+### 3.2 实例二
+
+使用 **show warnings** 查看 explain 中存在的问题
+
+查看mysql 版本号
+
+```
+C:\Users\Administrator>mysql -h 127.0.0.1 -P 3306 -u root -p
+Enter password: *******
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 14
+Server version: 8.0.13 MySQL Community Server - GPL
+```
+
+mysql 8.0.12之后，在执行 **explain** 后可使用 **show warnings**查看执行结果,不再使用explain extended 命令。
+https://dev.mysql.com/doc/refman/8.0/en/explain-extended.html
+
+show warnings的使用
+https://dev.mysql.com/doc/refman/8.0/en/show-warnings.html
+
+场景：where 中字段类型与表定义的字段类型不匹配，导致不能命中索引
+```
+mysql> create index index_strategy on condition_setting(strategy_name);
+Query OK, 0 rows affected (1.23 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> explain select count(*) from condition_setting where strategy_name=111;
++----+-------------+-------------------+------------+-------+----------------+----------------+---------+------+------+----------+--------------------------+
+| id | select_type | table             | partitions | type  | possible_keys  | key            | key_len | ref  | rows | filtered | Extra                    |
++----+-------------+-------------------+------------+-------+----------------+----------------+---------+------+------+----------+--------------------------+
+|  1 | SIMPLE      | condition_setting | NULL       | index | index_strategy | index_strategy | 302     | NULL |   29 |    10.00 | Using where; Using index |
++----+-------------+-------------------+------------+-------+----------------+----------------+---------+------+------+----------+--------------------------+
+1 row in set, 3 warnings (0.00 sec)
+
+mysql> show warnings;
++---------+------+-----------------------------------------------------------------------------------------------------------------------------------------+
+| Level   | Code | Message                                                                                                                                 |
++---------+------+-----------------------------------------------------------------------------------------------------------------------------------------+
+| Warning | 1739 | Cannot use ref access on index 'index_strategy' due to type or collation conversion on field 'strategy_name'                            |
+| Warning | 1739 | Cannot use range access on index 'index_strategy' due to type or collation conversion on field 'strategy_name'                          |
+| Note    | 1003 | /* select#1 */ select count(0) AS `count(*)` from `ctdb1`.`condition_setting` where (`ctdb1`.`condition_setting`.`strategy_name` = 111) |
++---------+------+-----------------------------------------------------------------------------------------------------------------------------------------+
+3 rows in set (0.00 sec)
+```
 
 ## 4.参考链接
 
